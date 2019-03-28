@@ -1,0 +1,103 @@
+.mm:root {
+	--num-1: 1;
+	--num-0_1: 0.1;
+	--num-0_2: 0.2;
+	--num-0_3: 0.3;
+	--num-0_4: 0.4;
+	--num-0_5: 0.5;
+	--num-0_6: 0.6;
+	--num-0_7: 0.7;
+	--num-0_8: 0.8;
+	--num-0_9: 0.9;
+	--num-0: 0;
+}
+.mm {
+	width: 100px;
+	right: 0;
+	top: 0;
+	z-index: 1080;
+	opacity: 0;
+	position: absolute;
+	overflow: hidden;
+	cursor: pointer;
+}
+.mm_container {
+	width: 100%;
+	position: relative;
+}
+.mm_container_scrollbar {
+	right: 0;
+	top: 0;
+	position: absolute;
+	cursor: pointer;
+	z-index: 1080;
+	height: 100%;
+	width: 100%;
+}
+.mm_container_bar {
+	width: 100%;
+	z-index: 1090;
+	background-color: rgba(255, 255, 255, 0.4);
+	right: 0;
+	top: 0;
+	position: absolute;
+	cursor: pointer;
+	padding: 0px 0px !important;
+}
+.mm_container>.CodeMirror {
+	cursor: pointer;
+	z-index: 1070;
+	background: rgba(0, 0, 0, 0.5) !important;
+	font-size: 4px !important;
+	font-weight: 300 !important;
+	line-height: 4px !important;
+	height: 100%;
+	width: 100%;
+	position: relative;
+	-ms-user-select: none !important;
+	-moz-user-select: none !important;
+	-khtml-user-select: none !important;
+	-webkit-user-select: none !important;
+}
+.mm_container>.CodeMirror .CodeMirror-scroll>.CodeMirror-sizer>div>.CodeMirror-lines {
+	padding: 0px 0px !important;
+}
+.mm_container>.CodeMirror .CodeMirror-scroll>.CodeMirror-sizer>div>.CodeMirror-lines>div>.CodeMirror-cursors {
+	display: none !important;
+}
+.mm_container>.CodeMirror .CodeMirror-scroll>.CodeMirror-sizer>div>.CodeMirror-lines>div>.CodeMirror-code .cm-tab {
+	background: none !important;
+	border: none !important;
+}
+.mm_container>.CodeMirror .CodeMirror-simplescroll-horizontal {
+	height: 0;
+	overflow-x: hidden !important;
+	display: none !important;
+}
+/*=============================================
+=                    animation                =
+=============================================*/
+.mm.transition,
+.mm.transition>* {
+	-moz-transition: opacity 0.1s ease-in-out 0.1s;
+	-webkit-transition: opacity 0.1s ease-in-out 0.1s;
+	-o-transition: opacity 0.1s ease-in-out 0.1s;
+	transition: opacity 0.1s ease-in-out 0.1s;
+}
+.mm.transition.fadeout {
+	opacity: 0.5;
+	-webkit-transition: opacity 0.1s ease-in-out 0.1s;
+	-moz-transition: opacity 0.1s ease-in-out 0.1s;
+	-o-transition: opacity 0.1s ease-in-out 0.1s;
+	transition: opacity 0.1s ease-in-out 0.1s;
+}
+/*=============================================
+=            active, hover, focus            =
+=============================================*/
+.mm:hover {
+	opacity: 1 !important;
+}
+.mm_container_bar:active {
+	background-color: rgba(255, 255, 255, 0.1);
+	border: 1px solid rgb(138, 138, 138)
+}
