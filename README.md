@@ -6,8 +6,11 @@ MiniMap is addon for CodeMirror.
 
 # About
 
---Variable width.
---Show MiniMAp on "focus".
+
+* `Variable width`.
+* `Show MiniMAp on "focus"`.
+* `Autoupdate size,content`.
+
 
 # Usage
 
