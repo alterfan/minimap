@@ -8,8 +8,9 @@
 })((CodeMirror) => {
 	"use strict";
 	/*======  Global  ======*/
-	let active = null,
-		factor,
+	// Create the event.
+	var ready = new Event("ready"),
+		active = null,
 		//.miniMap
 		mm,
 		//.mm_scrollbar
@@ -22,20 +23,32 @@
 	class MiniMap {
 		constructor(cm, width) {
 			this.ratio;
-			this.scrollBar = cm.getScrollerElement();
-			this.cm_wrap = cm.getWrapperElement();
+			this.scrollBar;
+			this.wrapper;
+			this.scroll;
 			this.width = width;
+			this.hFactor;
+			this.sFactor;
+			this.isReady = false;
 		}
-		_displayMiniMap(cm) {
+		init(cm) {
 			mm = document.createElement("div");
 			mm.className = "mm transition";
 			mm_scrollbar = document.createElement("div");
 			mm_scrollbar.className = "mm_scrollbar";
 			mm_bar = document.createElement("div");
 			mm_bar.className = "mm_bar";
-			this.scrollBar.parentNode.insertBefore(mm, this.scrollBar.nextSibling);
+			this.scrollBar = cm.getScrollerElement();
+			this.wrapper = cm.getWrapperElement();
+			this.scroll = cm.getScrollInfo();
+			console.warn(this.scroll.clientHeight)
+			this.render(cm);
+			this.update(cm);
+			this.events(cm);
+		}
+		render(cm) {
+			this.wrapper.insertBefore(mm, this.scrollBar.nextSibling);
 			mm.appendChild(mm_scrollbar);
-			mm.appendChild(mm_bar);
 			mm_cm = CodeMirror(mm_scrollbar, {
 				mode: cm.getOption('mode'),
 				theme: cm.getOption('theme'),
@@ -43,64 +56,64 @@
 				lineWrapping: false,
 				scrollbarStyle: "simple"
 			});
-			mm_cm.refresh();
-			if (mm_cm) {
-				this.render(cm);
-			}
+			mm.appendChild(mm_bar);
 		}
-		render(cm) {
+		update(cm) {
+			// mm_scrollbar.innerHTML = mm_cm.getWrapperElement().querySelector('.CodeMirror-lines').cloneNode(true).innerHTML;
 			mm_cm.setValue(cm.getValue());
-			mm.style.width = cm.getOption("miniMapWidth");
-			mm_scrollbar.style.maxHeight = mm.style.maxHeight = cm.getScrollInfo().clientHeight;
-			/**TODO
-			 * add fonts-size FACTOR
-			 * let factor_fontSize = getStyle(this.cm_wrap, "fontSize") /(3 * getStyle(mm_cm.getWrapperElement(), "fontSize"));
-			 */
-			factor = mm_cm.getScrollInfo().height / (this.scrollBar.scrollHeight - 14);
-			factor = Math.round(factor * 100) / 100;
-			mm_bar.style.height = parseInt(getStyle(mm, "height") * (cm.getScrollInfo().clientHeight / cm.getScrollInfo().height));
-			mm.classList.add("fadeout");
-			mm_bar.classList.add("fadeout");
 			mm_cm.refresh();
-			this.events(cm, getStyle(mm, "height"), getStyle(mm_bar, "height"));
+			this._setSize(cm)
 		}
-		destroyMiniMap(cm) {
+		_setSize(cm) {
+			mm.style.width = cm.getOption("miniMapWidth");
+			mm_scrollbar.style.maxHeight = this.scroll.clientHeight;
+			let factor_fontSize = getStyle(mm_scrollbar, "fontSize") / getStyle(this.wrapper, "fontSize");
+			this.hFactor = this.scroll.height / this.scroll.clientHeight;
+			if (mm_cm.getScrollInfo().height <= this.scroll.clientHeight) {
+				this.sFactor = this.scroll.height / mm_cm.getScrollInfo().height;
+			} else {
+				this.sFactor = this.hFactor;
+			}
+			mm_bar.style.height = mm_cm.getScrollInfo().height / this.hFactor;
+		}
+		remove(cm) {
 			if (mm != undefined) {
 				mm.remove()
 				mm_bar.remove()
 			}
 			cm.focus()
 		}
-		_scrollTo(mm, mm_bar, st, factor, cm) {
-			var isNormal = mm_cm.getScrollInfo().height > cm.getScrollInfo().clientHeight;
-			var max = getStyle(mm_bar, "height") + getStyle(mm_bar, "top");
-			if (isNormal) {
-				mm_bar.style.top = st * cm.getScrollInfo().clientHeight / cm.getScrollInfo().height;
-			} else {
-				mm_bar.style.top = parseInt(st * factor);
-			}
-			mm_scrollbar.scrollTop = parseInt(st * factor);
-		};
-		scrolling(mm, mm_bar, cm_scrollBar, factor, cm) {
+		scrolling(mm, mm_bar, cm_scrollBar) {
 			var self = this;
-			cm.on("scroll", function (cm) {
-				let st = cm_scrollBar.scrollTop
-				self._scrollTo(mm, mm_bar, st, factor, mm_cm)
-			});
-			addWheelListener(mm, function (e) {
-				var i = 5;
-				cm_scrollBar.scrollTop += (e.deltaY * i++);
-			});
+			let st = cm_scrollBar.scrollTop
+			var max = (getStyle(mm_bar, "height") + getStyle(mm_bar, "top")),
+				maxTop = getStyle(mm_scrollbar, "height") - getStyle(mm_bar, "height"),
+				isCan = getStyle(mm_scrollbar, "height") - max;
+			if (isCan >= 0) {
+				mm_bar.style.top = st / this.sFactor;
+				mm_scrollbar.scrollTop = st / this.sFactor;
+			} else {
+				mm_bar.style.top = maxTop;
+				mm_scrollbar.scrollTop = maxTop;
+			}
 		};
+		wheeling() {
+			let self = this;
+			return addWheelListener(mm, function (e) {
+				var i = 5;
+				self.scrollBar.scrollTop += (e.deltaY * i++);
+			});
+		}
 		dragging(miniMapBar, miniMap, scrollbar, cm) {
+			let self = this;
 			miniMapBar.onmousedown = function (e) {
 				let mmTop = e.pageY - miniMap.offsetParent.offsetTop,
 					mm_barTop = miniMapBar.offsetTop,
 					sbTop = scrollbar.scrollTop;
 				var scroll = function (e) {
-					factor = factor;
+					self.hFactor = self.hFactor;
 					if (mm_barTop >= 0) {
-						scrollbar.scrollTop = sbTop * factor + ((e.pageY / factor - miniMap.offsetParent.offsetTop / factor - sbTop * factor) - (mmTop / factor - mm_barTop / factor));
+						scrollbar.scrollTop = sbTop / self.hFactor + ((e.pageY * self.hFactor - miniMap.offsetParent.offsetTop * self.hFactor - sbTop / self.hFactor) - (mmTop * self.hFactor - mm_barTop * self.hFactor));
 					}
 				};
 				document.onmousemove = function (event) {
@@ -114,15 +127,20 @@
 			};
 		}
 		events(cm) {
-			var _this = this;
-			this.scrolling(mm, mm_bar, _this.scrollBar, factor, cm)
-			this.dragging(mm_bar, mm, _this.scrollBar, cm);
-			cm.on("change", function (cm) {
-				mm_cm.setValue(cm.getValue())
-			})
-			CodeMirror.on(cm, "refresh", (cm) => {
-				_this.render(cm)
+			var self = this;
+			cm.on("refresh", (cm) => {
+				self.scroll = cm.getScrollInfo();
+				console.warn(self.scroll.clientHeight)
+				self._setSize(cm);
 			});
+			cm.on("change", (cm) => {
+				self.update(cm)
+			});
+			cm.on("scroll", function (cm) {
+				self.scrolling(mm, mm_bar, self.scrollBar, self.hFactor, cm)
+				self.wheeling();
+			});
+			self.dragging(mm_bar, mm, self.scrollBar, cm);
 		}
 	};
 	/*======  Helper functions  ======*/
@@ -133,6 +151,21 @@
 		} else {
 			return parseInt(getComputedStyle(elem)[styleName])
 		}
+	}
+	function throttle(fn, context) {
+		var result;
+		return function () {
+			if (fn) {
+				result = fn.apply(context || this, arguments);
+				fn = null;
+			}
+			setTimeout(() => {
+				return result;
+			}, 300);
+		};
+	}
+	function round(num) {
+		return Math.round(num * 100) / 100;
 	}
 	/**
 	 * mouse wheel event handle
@@ -194,6 +227,7 @@
 	/*======  End Helper functions  ======*/
 	CodeMirror.defineOption("miniMapWidth", 60);
 	CodeMirror.defineOption("miniMap", false, function (cm, val, old) {
+		var minimap = new MiniMap(cm);
 		if (old && old != CodeMirror.Init) {
 			return
 		}
@@ -201,32 +235,14 @@
 		if (!old == !val) return;
 		if (val) {
 			CodeMirror.on(cm, "focus", (cm) => {
-				if (cm.hasFocus()) {
-					var minimap = new MiniMap(cm);
-					if (active != cm) {
-						active = cm
-						if (minimap) {
-							minimap.destroyMiniMap(cm);
-						}
-						minimap._displayMiniMap(cm);
+				if (active != cm) {
+					active = cm
+					if (minimap) {
+						minimap.remove(cm);
 					}
+					minimap.init(cm);
 				}
 			});
 		}
-	});
-	CodeMirror.defineExtension('miniMapWidth', function () {
-		var cm = this;
-		var minimap = new MiniMap(cm)
-		if (active != cm) {
-			active = cm
-			if (minimap) {
-				minimap.destroyMiniMap(cm);
-			}
-			minimap._displayMiniMap(cm);
-		}
-		CodeMirror.defineInitHook(function (cm) {
-			function log() {}
-			cm.on("refresh", render);
-		});
 	});
 })
