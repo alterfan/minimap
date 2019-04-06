@@ -20,7 +20,7 @@ var editor = CodeMirror("#editor", {
 });
 ```
 
-and "miniMapWidth" : `number>50` use "px"
+and "miniMapWidth" : `numeric value` ("px")
 
 ```javascript
 var editor = CodeMirror("#editor", {
