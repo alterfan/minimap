@@ -1,233 +1,226 @@
 (function (mod) {
 	if (typeof exports == "object" && typeof module == "object") // CommonJS
-		mod(require("codemirror"))
+		mod(require("codemirror"));
 	else if (typeof define == "function" && define.amd) // AMD
-		define(["codemirror"], mod)
+		define(["codemirror"], mod);
 	else // Plain browser env
 		mod(CodeMirror)
 })((CodeMirror) => {
-	"use strict";
+	'use strict';
+	let Active, ActiveMap, ActiveMapContent, ActiveCodeMirrorSizes, ActiveMapView;
+	/**
+	 *
+	 *
+	 * @class MiniMap
+	 */
 	class MiniMap {
-		constructor() {
-			this.scrollBar;
-			this.scroll;
-			this.width;
-			this.factor;
-			this.hFactor;
-			this.isMaxTop;
-			this.sFactor;
-			this.mm;
-			this.mm_cmScroll;
-			this.mm_cmScrollBar;
-			this.mmBar;
-			this.mapScroll;
-			this.clientHeight;
-			this.height;
+		constructor(cm) {
+			this.cm = cm;
+			this.screen = this.size = this.total = 0;
 			this.pos = 0;
-			this.old
-		}
-		init(cm, map) {
-			this.cm = cm; //current active CodeMirror
-			this.scrollBar = cm.getScrollerElement();
-			this.scroll = this.cm.getScrollInfo();
-			this.render(cm);
-			this.update(cm);
-			this.events(cm);
+			this.node = create("div", "map");
+			this.node__code = CodeMirror(this.node);
+			this.node__view = this.node.appendChild(create("div", "map__view fade"));
+			this.node__scrollbar = this.node.appendChild(create("div", "map__scrollbar"));
 		}
 		render(cm) {
-			this.mm = document.createElement("div");
-			this.mm.className = "mm";
-			this.old = this.mm;
-			this.mapScrollBar = document.createElement("div");
-			this.mapScrollBar.className = "mm_scrollbar";
-			this.mapScroll = document.createElement("div");
-			this.mapScroll.className = "mm_scroll";
-			this.mmBar = document.createElement("div");
-			this.mmBar.className = "mm_bar";
-			this.scrollBar.parentNode.insertBefore(this.mm, this.scrollBar);
-			this.mm.appendChild(this.mmBar);
-			this.mm.appendChild(this.mapScroll);
-			this.mm_cm = CodeMirror(this.mm, {
-				mode: cm.getOption('mode'),
-				theme: cm.getOption('theme'),
-				readOnly: true,
-				lineWrapping: false,
-				scrollbarStyle: null
-			});
-		}
-		update(cm) {
-			// mm_scrollbar.innerHTML = mm_cm.getWrapperElement().querySelector('.CodeMirror-lines').cloneNode(true).innerHTML;
-			this.mm_cm.setValue(cm.getValue());
-			this.mm_cm.refresh();
-			this.mm_cmScroll = this.mm_cm.getScrollInfo();
-			this.mm_cmScrollBar = this.mm_cm.getScrollerElement();
-			this.resize(cm)
-		}
-		resize(cm) {
-			var mmBarMaxTop, maxScrollTop;
-			this.scroll = this.cm.getScrollInfo();
-			this.height = this.scroll.height;
-			//this.mm.style.right = getStyle('.CodeMirror-simplescroll-vertical', "width");
-			this.mm.style.top = this.scrollBar.offsetTop;
-			this.mm.style.width = cm.getOption("miniMapWidth");
-			this.isMaxTop = this.mm_cmScroll.height > this.scroll.clientHeight;
-			this.mmBar.style.height = this.mm_cmScroll.height / (this.scroll.height / this.scroll.clientHeight);
-			if (this.isMaxTop) {
-				this.mm.style.height = this.scroll.clientHeight
-				mmBarMaxTop = getStyle(this.mm_cmScrollBar, "height") - getStyle(this.mmBar, "height");
-			} else {
-				this.mm.style.height = "auto";
-				mmBarMaxTop = getStyle(this.mm, "height") - getStyle(this.mmBar, "height");
+			this._init(cm)
+			this.wrapper.insertBefore(this.node, this.wrapper.firstChild);
+			this.node.style.width = this.width;
+			for (var i = 1; i < this.cm.getWrapperElement().childNodes.length; i++) {
+				this.cm.getWrapperElement().childNodes[i].style.marginLeft = this.width;
 			}
-			this.mmBar.style.height = this.mm_cmScroll.height / (this.scroll.height / this.scroll.clientHeight);
-			maxScrollTop = this.scroll.height - this.scroll.clientHeight;
-			this.factor = mmBarMaxTop / maxScrollTop;
+			this.scroller.style.width = "100%";
+			this.scroller.style.top = 0;
+			this.scroller.style.position = "absolute";
+			this._update();
 		}
-		clear(cm) {
-			if (this.old) {
-				this.old.remove()
-			}
-			cm.focus();
-		}
-		events(cm) {
+		_init(cm) {
 			var self = this;
-			CodeMirror.on(cm, "refresh", (cm) => {
-				self.resize(cm);
+			this.wrapper = this.cm.getWrapperElement();
+			this.width = this.cm.getOption("miniMapWidth");
+			this.scroller = this.cm.getScrollerElement();
+			cm.refresh();
+			this.events(cm, self);
+		}
+		events(cm, self) {
+			CodeMirror.on(cm, "mousedown", () => {
+				self.active = cm;
 			});
-			CodeMirror.on(cm, "change", (cm) => {
-				self.update(cm)
+			CodeMirror.on(self.cm, "focus", function () {
+				self._hideView(cm);
+				var sh = setInterval(function () {
+					cm.refresh();
+				}, 500);
+				setTimeout(function () {
+					clearInterval(sh);
+				}, 2000)
+				if (self.setSize(self.screen, self.cm) == true) {
+					self._showView(self);
+					self.updateSize(self, cm)
+				}
 			});
-			cm.on("scroll", function (cm) {
-				self.scrollTo(self.scrollBar.scrollTop)
+			CodeMirror.on(self.cm, "scroll", function () {
+				self.scrollPos(self.scroller.scrollTop);
 			});
-			self.onWheel(cm);
-			self.onDrag(self.mmBar, self.mm, self.scrollBar, cm);
+			CodeMirror.on(self.cm, "change", function () {
+				self._update(self.cm);
+				setTimeout(self.updateSize(self, cm));
+			});
+			CodeMirror.on(self.cm, "refresh", function () {
+				setTimeout(self.updateSize(self, cm));
+			});
+			CodeMirror.on(self.cm, "viewportChange", function () {
+				setTimeout(self.updateSize(self, cm));
+			});
+			CodeMirror.on(self.cm, "update", function () {
+				setTimeout(self.updateSize(self, cm));
+			});
+			CodeMirror.on(self.cm, "optionChange", function () {
+				setTimeout(self.updateSize(self, cm));
+			});
+		}
+		set active(cm) {
+			Active = this.cm = cm;
+			ActiveMap = Active.getWrapperElement().querySelector(".map");
+			ActiveMapContent = Active.getWrapperElement().querySelector(".map.CodeMirror");
+			ActiveMapView = Active.getWrapperElement().querySelector(".map__view");
+		}
+		_update() {
+			this.node__code.setSize(this.cm.getScrollInfo().clientWidth);
+			this.node__code.setValue(this.cm.getValue());
+			this.node__code.setOption("scrollbarStyle", null);
+			this.node__code.setOption("theme", this.cm.getOption("theme"))
+			this.node__code.setOption("mode", this.cm.getOption("mode"));
+		}
+		_showView(self) {
+			setTimeout(() => {
+				self.node__view.classList.remove("transition");
+				self.node__view.classList.remove("fade");
+				self.node__view.classList.add("active");
+			}, 200);
+		}
+		_hideView(cm) {
+			let active = document.querySelector(".map__view.active");
+			if (active) {
+				document.querySelector(".map__view.active").classList.add("fade");
+				document.querySelector(".map__view.active").classList.remove("active");
+			}
+		}
+		updateSize(self, cm) {
+			if (self.screen != self.cm.getScrollInfo().clientHeight) {
+				self.screen = cm.getScrollInfo().clientHeight;
+				self.setSize(self.screen, cm);
+				this.scrollTo(this.scroller.scrollTop)
+			}
+			if (Active)
+				Active.focus();
+		}
+		setSize(screen, cm) {
+			var self = this;
+			self.total = cm.getScrollInfo().height;
+			self.screen = cm.getScrollInfo().clientHeight;
+			self.map_total = this.node__code.getScrollInfo().height;
+			self.factor = self.screen / self.total;
+			this.size = this.map_total * this.factor;
+			if (ActiveCodeMirrorSizes !== this.size) {
+				ActiveCodeMirrorSizes = this.size;
+				this.topfactor = (this.map_total > this.screen ? this.screen : this.map_total) / this.total;
+				var scroll = this.total - this.screen,
+					mapscroll = this.map_total - this.screen > 0 ? this.map_total - this.screen : 0;
+				this.scrollFactor = mapscroll / scroll;
+				this.node__code.getScrollerElement().style.maxHeight = this.screen;
+				if (ActiveMapView !== undefined) {
+					ActiveMapView.style.height = ActiveCodeMirrorSizes;
+				}
+				this.scrollPos(this.pos, ActiveCodeMirrorSizes !== this.size);
+			}
+			return true;
+		}
+		scrollTo(pos) {
+			if (this.scrollPos(pos)) {
+				this.scroller.scrollTop = pos;
+			}
 		}
 		scrollPos(pos, force) {
 			if (pos < 0) pos = 0;
-			if (pos > this.scroll.height - this.scroll.clientHeight) pos = this.scroll.height - this.scroll.clientHeight;
+			if (pos >= scroll) return false;
 			if (!force && pos == this.pos) return false;
 			this.pos = pos;
-			this.mmBar.style.top = Math.ceil(pos * this.factor) + "px";
-			var isMax = Math.ceil(getStyle(this.mm, "height") - (getStyle(this.mmBar, "height") + getStyle(this.mmBar, "top")));
-			isMax = isMax > 0 ? isMax : 0;
-			if (this.isMaxTop) {
-				this.mm_cmScrollBar.scrollTop = getStyle(this.mmBar, "top") * this.factor;
+			if (this.node__view && this.node__code) {
+				this.node__code.getScrollerElement().scrollTop = pos * this.scrollFactor;
+				// this.node__code.getWrapperElement().style.bottom = pos * this.scrollFactor;
+				pos = (pos * this.topfactor) > (this.screen - this.node__view.offsetHeight) ? this.screen - this.node__view.offsetHeight : pos * this.topfactor;
+				this.node__view.style.top = pos;
 			}
-			return true
+			return true;
 		}
-		scrollTo(pos) {
-			if (this.scrollPos(pos)) this.scrollBar.scrollTop = pos;
-		}
-		onWheel() {
-			let self = this;
-			return addWheelListener(self.mm, function (e) {
-				var oldPos = self.pos;
-				self.scrollTo(self.pos + e.deltaY * self.sFactor);
-				if (self.pos != oldPos) CodeMirror.e_preventDefault(e);
-			});
-		}
-		onDrag(miniMapBar, miniMap, scrollbar, cm) {
-			let self = this;
-			CodeMirror.on(self.mmBar, "mousedown", function (e) {
+		onDrag(cm, self) {
+			CodeMirror.on(ActiveMapView, "mousedown", function (e) {
 				var start = e.pageY,
 					startpos = self.pos;
+
 				function done() {
 					CodeMirror.off(document, "mousemove", move);
 					CodeMirror.off(document, "mouseup", done);
 				}
+
 				function move(e) {
-					self.scrollTo(startpos + (e.pageY - start) / self.factor);
+					var p = startpos + (e.pageY - start) / self.factor
+					self.scrollTo((p > self.screen ? self.screen : (p < 0 ? 0 : p)));
 				}
 				CodeMirror.on(document, "mousemove", move);
 				CodeMirror.on(document, "mouseup", done);
 			});
 		}
-	};
-	/*======  Helper functions  ======*/
-	function getStyle(elem, styleName) {
-		let el = typeof elem == "string" ? document.querySelector(elem) : elem,
-			value;
-		if (isNaN(parseFloat(getComputedStyle(el)[styleName])) === true) {
-			value = getComputedStyle(el)[styleName]
-		} else {
-			value = parseFloat(getComputedStyle(el)[styleName])
-		}
-		return typeof elem === "string" ? value : Math.ceil(value)
 	}
-	/**
-	 * mouse wheel event handle
-	 * getting from https://developer.mozilla.org/en-US/docs/Web/Events/wheel
-	 */
-	(function () {
-		var prefix = "",
-			_addEventListener, support;
-		// detect event model
-		if (window.addEventListener) {
-			_addEventListener = "addEventListener";
-		} else {
-			_addEventListener = "attachEvent";
-			prefix = "on";
-		}
-		// detect available wheel event
-		support = "onwheel" in document.createElement("div") ? "wheel" : // Modern browsers support "wheel"
-			document.onmousewheel !== undefined ? "mousewheel" : // Webkit and IE support at least "mousewheel"
-			"DOMMouseScroll"; // let's assume that remaining browsers are older Firefox
-		window.addWheelListener = function (elem, callback, useCapture) {
-			_addWheelListener(elem, support, callback, useCapture);
-			// handle MozMousePixelScroll in older Firefox
-			if (support == "DOMMouseScroll") {
-				_addWheelListener(elem, "MozMousePixelScroll", callback, useCapture);
-			}
-		};
-		function _addWheelListener(elem, eventName, callback, useCapture) {
-			elem[_addEventListener](prefix + eventName, support == "wheel" ? callback : function (originalEvent) {
-				!originalEvent && (originalEvent = window.event);
-				// create a normalized event object
-				var event = {
-					// keep a ref to the original event object
-					originalEvent: originalEvent,
-					target: originalEvent.target || originalEvent.srcElement,
-					type: "wheel",
-					deltaMode: originalEvent.type == "MozMousePixelScroll" ? 0 : 1,
-					deltaX: 0,
-					deltaY: 0,
-					deltaZ: 0,
-					preventDefault: function () {
-						originalEvent.preventDefault ?
-							originalEvent.preventDefault() :
-							originalEvent.returnValue = false;
-					}
-				};
-				// calculate deltaY (and deltaX) according to the event
-				if (support == "mousewheel") {
-					event.deltaY = -1 / 40 * originalEvent.wheelDelta;
-					// Webkit also support wheelDeltaX
-					originalEvent.wheelDeltaX && (event.deltaX = -1 / 40 * originalEvent.wheelDeltaX);
-				} else {
-					event.deltaY = originalEvent.deltaY || originalEvent.detail;
-				}
-				// it's time to fire the callback
-				return callback(event);
-			}, useCapture || false);
-		}
-	})();
-	/*======  End Helper functions  ======*/
-	var minimap = new MiniMap();
-	CodeMirror.defineOption("miniMapWidth", 60);
 	CodeMirror.defineOption("miniMap", false, function (cm, val, old) {
 		if (old && old != CodeMirror.Init) {
-			return
+			return;
 		}
 		if (old == CodeMirror.Init) old = false;
-		if (!old == !val) return;
+		if (!old == !val) {
+			return;
+		}
 		if (val) {
-			CodeMirror.on(cm, "focus", (cm) => {
-				if (minimap.cm != cm) {
-					minimap.clear(cm)
-					minimap.init(cm, minimap.mm);
-				}
-			});
+			var minimap = new MiniMap(cm);
+			minimap.render(cm);
 		}
 	});
+	CodeMirror.defineOption("miniMapWidth", 48);
+
+	function getstyle(elem, prop) {
+		var styles, el;
+		el = typeof elem === "string" ? document.querySelector(elem) : elem;
+		styles = getComputedStyle(el);
+		if (prop !== undefined && prop !== null) {
+			styles = styles[prop];
+			if (parseFloat(styles) === false) {
+				styles = styles;
+			} else {
+				styles = parseFloat(styles);
+			}
+		} else {
+			styles = styles;
+		}
+		return styles;
+	}
+
+	function create(tag, className, id, styles) {
+		var element = document.createElement(tag);
+		var attr = className || id || styles;
+		if (attr !== undefined && attr !== null) {
+			if (typeof attr == "object") {
+				var styleName = attr;
+				for (var key in attr) {
+					element.style[key] = styleName[key]
+				}
+			} else {
+				attr = [className, id]
+				if (className !== undefined) element.className = attr[0];
+				if (id !== undefined) element.id = attr[1];
+			}
+		}
+		return element;
+	}
 })
