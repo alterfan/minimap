@@ -1,16 +1,20 @@
-# cm-addon-minimap
+# cm-minimap-addon
+
+# MiniMap
 
 MiniMap is addon for CodeMirror.
 
+# About
+
+--Variable width.
+--Show MiniMAp on "focus".
+
 # Usage
 
-You will need include set of the stylesheet and script tags below in your document:
-
-```html
-<link rel="stylesheet" href="cm-addon-minimap.css" />
-<script type="text/javascript" src="cm-addon-minimap.js"></script>
-```
-
+you will need to paste:
+`<link rel="stylesheet" href="cm-addon-minimap.css">`
+and
+`<script type="text/javascript" src="cm-addon-minimap.js"></script>`
 Then set CodeMirror option "miniMap" : `true/false`
 
 ```javascript
@@ -20,7 +24,7 @@ var editor = CodeMirror("#editor", {
 });
 ```
 
-and "miniMapWidth" : `numeric value` ("px")
+and "miniMapWidth" : `number>50` use "px"
 
 ```javascript
 var editor = CodeMirror("#editor", {
