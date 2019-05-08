@@ -17,13 +17,13 @@
 To use MiniMap is to simply load the script after all CodeMirror .js files:
 
 ```html
-<script type="text/javascript" src="cm-addon-minimap.js"></script>
+<script type="text/javascript" src="src/cm-addon-minimap.js"></script>
 ```
 
 and style sheet after all CodeMirror's style sheet files:
 
 ```html
-<link rel="stylesheet" href="cm-addon-minimap.css" />
+<link rel="stylesheet" href="src/cm-addon-minimap.css" />
 ```
 
 #### How to use:
@@ -55,3 +55,4 @@ editor.setOption("miniMapWidth", 80);
 ## License
 
 MIT
+git remote set-url [--push] minimap https://github.com/alterfan/MiniMap-CodeMirror.git [https://github.com/alterfan/cm-minimap-addon.git]
