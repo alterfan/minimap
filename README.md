@@ -1,6 +1,6 @@
 # MiniMap for CodeMirror
 
-[![N|Solid](https://badrams.ru/minimap/sreenshot.png)](https://nodesource.com/products/nsolid)
+[!(https://badrams.ru/minimap/sreenshot.png)](https://badrams.ru/minimap/)
 
 **MiniMap** for CodeMirror is a addon for CodeMirror's based editors.
 
