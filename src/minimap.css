@@ -1,10 +1,8 @@
 .map {
-    top: 0;
-    position: absolute;
     cursor: pointer;
     overflow: hidden !important;
+    position:absolute;
 }
-
 .map {
     opacity: 0;
     /*Элемент полностью прозрачный (невидимый)*/
@@ -15,17 +13,14 @@
     animation-delay: 900ms;
     /* Задержка перед началом */
 }
-
 @keyframes show {
     0% {
         opacity: 0;
     }
-
     100% {
         opacity: 1;
     }
 }
-
 .map__scrollbar {
     min-height: 100%;
     width: 100%;
@@ -35,11 +30,10 @@
     top: 0;
     position: absolute;
 }
-
 .map__view {
     width: 100%;
     z-index: 1052;
-    background-color: rgba(121, 121, 121, 0.3);
+    background-color: rgba(255, 255, 255, 0.3);
     cursor: pointer;
     position: absolute;
     left: 0;
@@ -49,13 +43,10 @@
     -o-transition: opacity 0.2s ease-in-out 0.2s, height 0.2s ease-in-out 0.2s;
     transition: opacity 0.2s ease-in-out 0.2s, height 0.2s ease-in-out 0.2s;
 }
-
-
 .map__view:hover {
     background-color: rgba(121, 121, 121, 0.1);
     border: 1px solid rgb(138, 138, 138)
 }
-
 .map__view.faded {
     opacity: 0;
     -webkit-transition: opacity 0.2s ease-in-out 0.2s, height 0.2s ease-in-out 0.2s;
@@ -63,7 +54,6 @@
     -o-transition: opacity 0.2s ease-in-out 0.2s, height 0.2s ease-in-out 0.2s;
     transition: opacity 0.2s ease-in-out 0.2s, height 0.2s ease-in-out 0.2s;
 }
-
 .map>.CodeMirror {
     z-index: 1050;
     cursor: pointer !important;
@@ -75,14 +65,12 @@
     width: 100%;
     min-width: 100%;
 }
-
 .map>.CodeMirror pre {
     cursor: pointer !important;
     -moz-user-select: none !important;
     -khtml-user-select: none !important;
     user-select: none !important;
 }
-
 .map>.CodeMirror pre {
     -webkit-user-select: none !important;
     /* user-select -- это нестандартное свойство */
@@ -90,26 +78,21 @@
     /* поэтому нужны префиксы */
     -ms-user-select: none !important;
 }
-
 .map>.CodeMirror .CodeMirror-scroll>.CodeMirror-sizer>div>.CodeMirror-lines {
     padding: 0px 0px !important;
 }
-
 .map>.CodeMirror .CodeMirror-scroll>.CodeMirror-sizer>div>.CodeMirror-lines>div>.CodeMirror-cursors {
     display: none !important;
 }
-
 .map>.CodeMirror .CodeMirror-scroll>.CodeMirror-sizer>div>.CodeMirror-lines>div>.CodeMirror-code .cm-tab {
     background: none !important;
     border: none !important;
 }
-
 .map>.CodeMirror .CodeMirror-simplescroll-horizontal {
     height: 0;
     overflow-x: hidden !important;
     display: none !important;
 }
-
 /*=============================================
 =                    animation                =
 =============================================*/
@@ -120,7 +103,6 @@
     -o-transition: opacity 0.2s ease-in-out 0.2s, top 0s;
     transition: opacity 0.2s ease-in-out 0.2s, top 0s;
 }
-
 .transition.faded {
     opacity: 0;
     -webkit-transition: opacity 0.2s ease-in-out 0.2s, top 0s;
@@ -128,18 +110,14 @@
     -o-transition: opacity 0.2s ease-in-out 0.2s, top 0s;
     transition: opacity 0.2s ease-in-out 0.2s, top 0s;
 }
-
 /*=============================================
 =            active, hover, focus            =
 =============================================*/
-
-
 @media only screen and (max-width: 1024px)and (orientation: portrait) {
     .map {
         width: 1em;
     }
 }
-
 @media only screen and (min-width: 768px) and (max-width: 1200px)and (orientation: landscape) {
     .map {
         width: 1em;
