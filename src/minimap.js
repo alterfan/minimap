@@ -29,54 +29,58 @@
             this.editor_view = this.node_view_size = this.editor_total = 0;
             this.init(cm);
         }
-        init() {
+        init(cm) {
+            this.node__code.swapDoc(this.cm.linkedDoc());
             this.wrapper = this.cm.getWrapperElement();
             this.width = this.cm.getOption("miniMapWidth");
             this.scroller = this.cm.getScrollerElement();
-            this.wrapper.insertBefore(this.node, this.wrapper.firstChild);
-            this.node.style.width = this.width;
-            for (var i = 1; i < this.cm.getWrapperElement().childNodes.length; i++) {
-                this.cm.getWrapperElement().childNodes[i].style.marginLeft = this.width;
+            for (var i = 1; i < this.wrapper.childNodes.length; i++) {
+                this.wrapper.childNodes[i].style.marginLeft = this.width;
             }
+            if (this.wrapper.querySelector(".CodeMirror-simplescroll-vertical") !== null) {
+                this.wrapper.querySelector(".CodeMirror-simplescroll-vertical").style.visibility = "hidden";
+            }
+            this.wrapper.insertBefore(this.node, this.wrapper.firstChild.nextElementSibling);
+            this.node.style.width = this.width;
             this.scroller.style.width = "100%";
-            this.scroller.style.top = 0;
             this.scroller.style.position = "absolute";
             this.events(this.cm);
-            this.changes();
+            this.changeOptions(cm);
         }
         events(cm) {
-            var self = this,
-                click = "mousedown" || "touchstart",
-                changes = "refresh" || "update" || "viewportChange" || "optionChange";
-            CodeMirror.on(cm, click, () => {
-                ActiveCM = self.cm = cm;
+            var that = this;
+            CodeMirror.on(cm, "mousedown", () => {
+                ActiveCM = that.cm = cm;
                 ActiveMinimap = ActiveCM.getWrapperElement().querySelector(".map");
-                ActiveMinimapCM = self.node__code;
+                ActiveMinimapCM = that.node__code;
                 ActiveMinimapViewFrame = ActiveCM.getWrapperElement().querySelector(".map__view");
-                self._scrollTop(self.scroller.scrollTop);
+                that._scrollTop(that.scroller.scrollTop);
             });
-            CodeMirror.on(self.cm, changes, function() {
-                setTimeout(self.applyViewFrameSize(cm));
+            CodeMirror.on(that.cm, "update", function() {
+                that.applyViewFrameSize(cm);
             });
-            CodeMirror.on(self.cm, "focus", function() {
-                self.hide(cm);
-                self.show(self);
-                self.applyViewFrameSize(cm);
+            CodeMirror.on(that.cm, "focus", function() {
+                that.hide(cm);
+                that.show(that);
+                that.applyViewFrameSize(cm);
             });
-            CodeMirror.on(self.cm, "scroll", function() {
-                self._moveViewFrame(self.scroller.scrollTop)
+            CodeMirror.on(that.cm, "blur", function() {
+                that.hide(cm);
             });
-            CodeMirror.on(self.cm, "change", function() {
-                self.changes(self.cm);
-                setTimeout(self.applyViewFrameSize(cm));
+            CodeMirror.on(that.cm, "scroll", function() {
+                that._moveViewFrame(that.scroller.scrollTop)
+            });
+            CodeMirror.on(that.cm, "change", function() {
+                that.changeOptions(that.cm);
+                setTimeout(that.applyViewFrameSize(cm));
             });
         }
-        changes() {
+        changeOptions(cm) {
             this.node__code.setSize(this.cm.getScrollInfo().clientWidth);
-            this.node__code.setValue(this.cm.getValue());
             this.node__code.setOption("scrollbarStyle", null);
-            this.node__code.setOption("theme", this.cm.getOption("theme"))
+            this.node__code.setOption("theme", this.cm.getOption("theme"));
             this.node__code.setOption("mode", this.cm.getOption("mode"));
+            this.node__code.setOption("vieportMargin", "infinity");
         }
         show(self) {
             if (isVisible == false) {
@@ -146,12 +150,16 @@
         _moveViewFrame(pos, force) {
             let maxScroll = this.editor_total - this.editor_view;
             let posTop = pos * this.topfactor;
+            let offsetBottom = 0;
+            if (this.cm.getWrapperElement().querySelector(".CodeMirror-simplescroll-horizontal") !== null) {
+                offsetBottom = this.cm.getWrapperElement().querySelector(".CodeMirror-simplescroll-horizontal").offsetHeight;
+            }
             if (pos >= maxScroll) return false;
             if (!force && pos == this.pos) return false;
             this.pos = pos;
             this.viewFrame_pos = this.node__view.getBoundingClientRect().y;
             this.node__code.getScrollerElement().scrollTop = pos * this.scrollFactor;
-            this.node__view.style.transform = "translateY(" + (posTop <= 0 ? 0 : posTop) + "px)"; //set minimap view position top
+            this.node__view.style.transform = "translateY(" + ((posTop <= 0 ? 0 : posTop) - offsetBottom) + "px)"; //set minimap view position top
             return true;
         }
         _events(self) {
@@ -162,17 +170,15 @@
                 let pos,
                     start = e.pageY,
                     startpos = self.pos;
-
                 function done() {
-                    CodeMirror.off(document, "mousemove", move);
+                    CodeMirror.off(ActiveMinimap, "mousemove", move);
                     CodeMirror.off(document, "mouseup", done);
                 }
-
                 function move(e) {
                     pos = startpos + (e.pageY - start) / self.topfactor;
                     self._scrollTop(pos);
                 }
-                CodeMirror.on(document, "mousemove", move);
+                CodeMirror.on(ActiveMinimap, "mousemove", move);
                 CodeMirror.on(document, "mouseup", done);
             });
             CodeMirror.on(_map, "mousedown", function(e) {
@@ -182,12 +188,10 @@
                     start = ActiveMinimapViewFrame.getBoundingClientRect().top,
                     startpos = self.pos,
                     centered = ActiveMinimapViewFrame.offsetHeight / 2;
-
                 function done() {
                     CodeMirror.off(_map, "mousedown", move);
                     CodeMirror.off(_map, "mouseup", done);
                 }
-
                 function move(e) {
                     pos = startpos + (e.pageY - start - centered) / self.topfactor;
                     self._scrollTop(pos);
@@ -209,8 +213,8 @@
             var minimap = new MiniMap(cm)
         }
     });
-    CodeMirror.defineOption("miniMapWidth", 48);
-
+    CodeMirror.defineOption("miniMapWidth", 32);
+    CodeMirror.defineOption("miniMapPosition", "left");
     function create(tag, className, id, styles) {
         var element = document.createElement(tag);
         var attr = className || id || styles;
@@ -227,15 +231,6 @@
             }
         }
         return element;
-    }
-
-    function setStyle(elem, stylename, val) {
-        var element = elem;
-        if (typeof stylename == "string") {
-            return element.style[stylename] = val;
-        } else {
-            return element.style.stylename = val;
-        }
     }
     /**
      * mouse wheel event handle
@@ -262,7 +257,6 @@
                 _addWheelListener(elem, "MozMousePixelScroll", callback, useCapture);
             }
         };
-
         function _addWheelListener(elem, eventName, callback, useCapture) {
             elem[_addEventListener](prefix + eventName, support == "wheel" ? callback : function(originalEvent) {
                 !originalEvent && (originalEvent = window.event);
