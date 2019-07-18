@@ -56,23 +56,18 @@
                 ActiveMinimapViewFrame = ActiveCM.getWrapperElement().querySelector(".map__view");
                 that._scrollTop(that.scroller.scrollTop);
             });
-            CodeMirror.on(that.cm, "update", function() {
-                that.applyViewFrameSize(cm);
-            });
             CodeMirror.on(that.cm, "focus", function() {
-                that.hide(cm);
-                that.show(that);
+                that.show(that, that.hide(self));
                 that.applyViewFrameSize(cm);
-            });
-            CodeMirror.on(that.cm, "blur", function() {
-                that.hide(cm);
             });
             CodeMirror.on(that.cm, "scroll", function() {
                 that._moveViewFrame(that.scroller.scrollTop)
             });
-            CodeMirror.on(that.cm, "change", function() {
-                that.changeOptions(that.cm);
-                setTimeout(that.applyViewFrameSize(cm));
+            CodeMirror.on(that.cm, "refresh", function() {
+                setTimeout(() => {
+                    that.changeOptions(that.cm);
+                    that.applyViewFrameSize(cm)
+                });
             });
         }
         changeOptions(cm) {
@@ -81,8 +76,11 @@
             this.node__code.setOption("theme", this.cm.getOption("theme"));
             this.node__code.setOption("mode", this.cm.getOption("mode"));
             this.node__code.setOption("vieportMargin", "infinity");
+            this.node__code.getWrapperElement().style.fontSize = cm.defaultTextHeight() / 4 + "px";
+            this.node__code.getWrapperElement().style.lineHeight = cm.defaultTextHeight() / 4 + "px";
+            this.node__code.getWrapperElement().style.width = cm.getWrapperElement().offsetWidth / 4 + "px";
         }
-        show(self) {
+        show(self, callback) {
             if (isVisible == false) {
                 self.node__view.classList.remove("transition");
                 self.node__view.classList.remove("faded");
@@ -91,6 +89,7 @@
                 self._moveViewFrame(ActiveCM.getScrollerElement().scrollTop);
                 isVisible = true;
             }
+            callback
         }
         hide(self) {
             if (isVisible == true) {
@@ -125,7 +124,9 @@
                 this._minimapScrollFactor(this);
                 this.node__code.getScrollerElement().style.maxHeight = this.editor_view;
                 if (ActiveMinimapViewFrame !== undefined) {
-                    ActiveMinimapViewFrame.style.height = ActiveMinimapViewFrameSize;
+                    var lineLength = this.editor_view / cm.defaultTextHeight(),
+                        viewSize = this.node__code.defaultTextHeight() * lineLength;
+                    ActiveMinimapViewFrame.style.height = viewSize + "px";
                 }
                 this._moveViewFrame(this.pos, ActiveMinimapViewFrameSize !== this.size);
             }
@@ -232,6 +233,7 @@
         }
         return element;
     }
+    function applyToAll(selector) {}
     /**
      * mouse wheel event handle
      * getting from https://developer.mozilla.org/en-US/docs/Web/Events/wheel
