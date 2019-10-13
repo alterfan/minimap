@@ -1,0 +1,51 @@
+<!doctype html>
+<html>
+<head>
+    <title>Minimap</title>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+    <meta name="HandheldFriendly" content="True" />
+    <link rel=stylesheet href="style.css">
+    <link rel="stylesheet" href="./lib/codemirror/lib/codemirror.css">
+    <link rel="stylesheet" href="./lib/codemirror/addon/scroll/simplescrollbars.css">
+    <link rel="stylesheet" href="./lib/codemirror/theme/dracula.css">
+    <link rel="stylesheet" href="./dist/minimap.css">
+</head>
+<body>
+    <section class="display-1">
+        <h3>Minimap</h3>
+    </section>
+    <section class="display-2">
+        <textarea id="code" name="code" hidden></textarea>
+    </section>
+    <script src="./lib/codemirror/lib/codemirror.js"></script>
+    <script src="./lib/codemirror/mode/markdown/markdown.js"></script>
+    <script src="./lib/codemirror/mode/xml/xml.js"></script>
+    <script src="./lib/codemirror/mode/javascript/javascript.js"></script>s
+    <script src="./lib/codemirror/addon/scroll/simplescrollbars.js"></script>
+    <script src="./lib/codemirror/addon/display/panel.js"></script>
+    <!-- minimap -->
+    <script src="./dist/helpers.js" type="text/javascript"></script>
+    <script src="./dist/Buffer.js" type="text/javascript"></script>
+    <script src="./dist/CanvasElement.js" type="text/javascript"></script>
+    <script src="./dist/Drawer.js" type="text/javascript"></script>
+    <script src="./dist/MiniMapElement.js" type="text/javascript"></script>
+    <script src="./dist/MiniMap.js" type="text/javascript"></script>
+    <script src="./dist/main.js" type="text/javascript"></script>
+    <script>
+        var editor, numPanels, panels = {};
+        var textarea = document.getElementById("code");
+        textarea.innerHTML = jscode
+        editor = CodeMirror.fromTextArea(textarea, {
+            mode: "javascript",
+            lineNumbers: true,
+            scrollbarStyle: "simple",
+            theme: "dracula",
+            miniMap: true,
+            miniMapSide: "right"
+        });
+    </script>
+</body>
+</html>

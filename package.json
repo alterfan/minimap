@@ -1,0 +1,30 @@
+{
+    "name": "yes",
+    "version": "0.0.7",
+    "description": "CodeMirror addon Minimap ",
+    "main": "script.js",
+    "directories": {
+        "lib": "lib"
+    },
+    "scripts": {
+        "build": "browserify dist/MiniMap.js -o MiniMap.bundele.js"
+    },
+    "repository": {
+        "type": "git",
+        "url": "git+https://github.com/alterfan/minimap.git"
+    },
+    "keywords": [
+        "CodeMiror",
+        "cm-addon",
+        "Minimap"
+    ],
+    "author": "alterfan",
+    "license": "ISC",
+    "bugs": {
+        "url": "https://github.com/alterfan/minimap/issues"
+    },
+    "homepage": "https://github.com/alterfan/minimap#readme",
+    "dependencies": {
+        "underscore": "^1.9.1"
+    }
+}

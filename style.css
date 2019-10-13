@@ -1,0 +1,57 @@
+@font-face {
+    font-family: 'Source Sans Pro';
+    font-style: normal;
+    font-weight: 200;
+    src: local('Source Sans Pro'), local('SourceSansPro-Regular'), url(//themes.googleusercontent.com/static/fonts/sourcesanspro/v5/ODelI1aHBYDBqgeIAH2zlBM0YzuT7MdOe03otPbuUS0.woff) format('woff');
+}
+body,
+html {
+    margin: 0;
+    padding: 0;
+    height: 100%;
+    width: 100%;
+    box-sizing: border-box;
+    -moz-box-sizing: border-box;
+}
+body {
+    position: relative;
+    overflow-x: hidden !important;
+    overflow-y: hidden;
+    background-color: #333;
+    font-family: 'Segoe Ui', Helvetica, sans-serif;
+}
+.display-1 {
+    display: flex;
+    text-align: center;
+    padding: 0 15px;
+    justify-content: center;
+    flex: 0 0 auto
+}
+.display-1 h3 {
+    margin: 0;
+    padding: 15px;
+    font-size: 3rem;
+    font-weight: 200;
+    min-width: 100%;
+    background-color: #3bd5ff;
+    box-shadow: 3px 3px 10px rgba(0, 0, 0, 0.3);
+    border-radius: 3px;
+    -webkit-border-radius: 3px;
+    -moz-border-radius: 3px;
+    -ms-border-radius: 3px;
+    -o-border-radius: 3px;
+}
+.display-2 {
+    margin: 0;
+    padding: 0;
+    height: 100%;
+    width: 100%;
+    box-sizing: border-box;
+    box-shadow: 3px 3px 10px rgba(0, 0, 0, 0.3);
+}
+.CodeMirror {
+    position: relative;
+    width: 100%;
+    height: 100%;
+    font-size: 14px;
+}
