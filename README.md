@@ -40,17 +40,15 @@ Defines an `miniMapWidth` option in CodeMirror configuration to set MiniMap widt
 
 ```javascript
 var editor = CodeMirror("#editor", {
-	miniMapWidth: 48
+	miniMapWidth: 64
 });
-```
-
-or use CodeMirror methods `cm.setOption(`**_`option name`_**`,`**_`value`_**`)` as example:
+`
+Defines an `miniMapSide` option in CodeMirror configuration to set MiniMap side. This option use `left/right` :
 
 ```javascript
-var editor = CodeMirror("#editor");
-editor.setOption("miniMap", true);
-editor.setOption("miniMapWidth", 80);
-```
+var editor = CodeMirror("#editor", {
+	miniMapSide: "left"
+});``
 
 ## License
 
