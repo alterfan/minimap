@@ -1,0 +1,58 @@
+# MiniMap for CodeMirror
+
+[![N|Solid](https://badrams.ru/minimap/sreenshot.png)](https://nodesource.com/products/nsolid)
+
+**MiniMap** for CodeMirror is a addon for CodeMirror's based editors.
+
+-   Change map width
+-   Can be used as alternative for standard CodeMirror add-on simplescroll.js
+
+#### New Features!
+
+-   Added scrollbar functionality
+-   Fixed some bugs
+
+#### How to install:
+
+To use MiniMap is to simply load the script after all CodeMirror .js files:
+
+```html
+<script type="text/javascript" src="src/cm-addon-minimap.js"></script>
+```
+
+and style sheet after all CodeMirror's style sheet files:
+
+```html
+<link rel="stylesheet" href="src/cm-addon-minimap.css" />
+```
+
+#### How to use:
+
+Defines an `miniMap` option in CodeMirror configuration to show MiniMap:
+
+```javascript
+var editor = CodeMirror("#editor", {
+	miniMap: true
+});
+```
+
+Defines an `miniMapWidth` option in CodeMirror configuration to set MiniMap width. This option use `px` as measure unit:
+
+```javascript
+var editor = CodeMirror("#editor", {
+	miniMapWidth: 48
+});
+```
+
+or use CodeMirror methods `cm.setOption(`**_`option name`_**`,`**_`value`_**`)` as example:
+
+```javascript
+var editor = CodeMirror("#editor");
+editor.setOption("miniMap", true);
+editor.setOption("miniMapWidth", 80);
+```
+
+## License
+
+MIT
+git remote set-url [--push] minimap https://github.com/alterfan/MiniMap-CodeMirror.git [https://github.com/alterfan/cm-minimap-addon.git]
