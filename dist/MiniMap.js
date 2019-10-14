@@ -36,6 +36,16 @@ class MiniMap {
     get maxVisibleRows() {
         return Math.round(this.editorElement.offsetHeight / 3);
     }
+    get viewboxScrollRatio() {
+        const viewScrollHeight = (this.linesCount - this.maxVisibleRows + 1);
+        const editorScrollHeight = (this.linesCount - this.maxVisibleLineRange + 1);
+        return viewScrollHeight / editorScrollHeight
+    }
+    get minimapScrollRatio() {
+        const mapScrollHeight = (this.linesCount - this.maxVisibleRows + 1);
+        const editorScrollHeight = (this.linesCount - this.maxVisibleLineRange + 1);
+        return mapScrollHeight / editorScrollHeight
+    }
     updateLines() {
         let number,
             lines = this.editor.getValue().split("\n"),
@@ -85,35 +95,18 @@ class MiniMap {
         this.minimap.resizeViewBox(this.maxVisibleLineRange);
         this.canvas.resize(height, this.miniMapWidth);
     }
-    updateFloatSide(side) {
-        if (side == undefined) side = this.floatSide == "left" ? "right" : "left";
-        if (side == "left") this.minimap.floatLeft();
-        if (side == "right") this.minimap.floatRight();
-        this.floatSide = side;
-        localStorage.setItem("floatSide", this.floatSide);
-    }
     refresh() {
         this.updateLines();
         this.updateSize();
-        this.updateFloatSide(localStorage.getItem("floatSide"));
         this.front.draw(this.firstVisibleLine, this.firstVisibleLine + this.maxVisibleRows);
+        console.log('this.firstVisibleLine, this.firstVisibleLine + this.maxVisibleRows: ', this.firstVisibleLine, this.firstVisibleLine + this.maxVisibleRows);
     }
     scrollTop() {
-        const topRow = Math.ceil(this.firstVisibleLine * this.scrollScaleRatio);
+        const topRow = Math.ceil(this.firstVisibleLine * this.minimapScrollRatio);
         this.front.draw(topRow, this.linesCount);
         const factor = (this.offsetHeight - this.minimap.viewBoxHeight) / (this.scrollbar.total - this.offsetHeight)
         let pos = this.scrollbar.pos * factor;
         this.minimap.moveViewBox(pos);
-    }
-    get viewScaleRatio() {
-        const viewScrollHeight = (this.linesCount - this.maxVisibleRows + 1);
-        const editorScrollHeight = (this.linesCount - this.maxVisibleLineRange + 1);
-        return viewScrollHeight / editorScrollHeight
-    }
-    get scrollScaleRatio() {
-        const mapScrollHeight = (this.linesCount - this.maxVisibleRows + 1);
-        const editorScrollHeight = (this.linesCount - this.maxVisibleLineRange + 1);
-        return mapScrollHeight / editorScrollHeight
     }
     init() {
         this.minimap = new MiniMapElement(this.editor);

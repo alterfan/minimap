@@ -5,38 +5,35 @@ class MiniMapElement {
         this.width = undefined;
         this.height = undefined;
         this.attached = false;
-        this.attach(editor);
+        this.editor = editor;
+        this.attach();
     }
     /**
      * Create minimap elements:
      */
-    attach(editor) {
-        this.editor = editor;
+    attach() {
         this.node = document.createElement('div');
         this.node.className = 'minimap';
         this.viewBoxElement = document.createElement('div');
-        this.viewBoxElement.classList.add('viewbox');
+        this.viewBoxElement.style.position="absolute"
+        this.viewBoxElement.style.background = "rgba(255,255,255,0.5)"
         this.node.appendChild(this.viewBoxElement);
-        this.editor.addPanel(this.node);
-        this.editor.setSize(null, null);
-        if (this.editor.state.panels.wrapper) {
-            this.editor.state.panels.wrapper.style["display"] = "inline-flex";
-            this.node.style["flex"] = "1 0 auto";
-            this.editor.getWrapperElement().style["flex"] = "1 1 auto";
-        }
+        this.float()
+        this.editor.addPanel(this.node, {
+            position: "after-top",
+            stable: true
+        });
+
     }
     /**
      * Resize minimap elements:
      */
-    fullHeight() {
-        return this.editor.lineCount() * Buffer.get("lineHeight");
-    }
     resize(height, width) {
         this.resizeMinimap(height, width);
     }
-    resizeMinimap(height, width) {
-        this.node.style.width = width || Buffer.get("miniMapWidth") + "px";
-        this.node.style.height = height || Buffer.get("miniMapHeight", height) + "px";
+    resizeMinimap() {
+        this.node.style.width = Buffer.get("miniMapWidth") + "px";
+        this.node.style.height = Buffer.get("miniMapHeight") + "px";
     }
     resizeViewBox(visibleLines) {
         this.viewBoxHeight = visibleLines * 3;
@@ -55,20 +52,15 @@ class MiniMapElement {
     set Background(bg) {
         this.node.style.backgroundColor = bg;
     }
-    floatRight() {
-        this.editor.state.panels.wrapper.style["flex-direction"] = "row-reverse";
-        this.node.style.boxShadow = "-1px -1px 5px -1px rgba(0,0,0,.5)";
+    float() {
+        let side = this.editor.getOption("miniMapSide");
+        if (side == "left") this.node.style.float = "left"
+        if (side == "right") this.node.style.float = "right"
     }
-    floatLeft() {
-        this.editor.state.panels.wrapper.style["flex-direction"] = "row-reverse";
-        this.node.style.boxShadow = "1px -1px 5px -1px rgba(0,0,0,.5)";
-    }
+
 }
-var Move = {
-    vertical: element => {
-        element.style.transform = "translateY(" + (pos + 1) + "px)";
-    }
-};
+
+
 function start(e) {
     if (e.which !== 1 && e.which !== 2 && !(e.touches != null)) return;
     startX = e.clientX;

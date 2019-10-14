@@ -1,6 +1,6 @@
 	(function(mod) {
 	    if (typeof exports == "object" && typeof module == "object")
-	        mod(require("codemirror"));
+	        mod(require(["codemirror","MiniMap.js"]));
 	    else if (typeof define == "function" && define.amd)
 	        define(["codemirror", "Drawer", "MiniMap"], mod);
 	    else
@@ -28,11 +28,11 @@
 	                mm.scrollTop();
 	            });
 	            window.onresize = (e) => {
-	                mm.minimap.resize(mm.editorElement.offsetHeight, mm.width);
+	                mm.refresh()
 	            };
 	            node.ondblclick = (e) => {
 	                setTimeout(() => {
-	                    mm.updateFloatSide()
+	                    mm.minimap.float()
 	                }, 300)
 	            }
 	            node.ontouchstart = (e) => {

@@ -21,20 +21,19 @@ class Drawer {
         this.context.restore();
     }
     draw(firstRow, lastRow) {
-        if (firstRow > lastRow) return
         this.firstRow = firstRow;
         this.lastRow = lastRow || Buffer.get("linesCount");
         this.clear();
         this.context.save();
         for (let lineIndex = firstRow || 0; lineIndex < this.lastRow; lineIndex++) {
-            const line = Buffer.get("linesTokens")[lineIndex];
+            let line = this.linesTokens[lineIndex];
+            if (line == undefined) return
             this.drawLine(lineIndex, line)
         }
         this.context.restore();
     }
-    getlinesTokens() {
-        this.linesTokens = Buffer.get("linesTokens");
-        return linesTokens
+    get linesTokens() {
+        return Buffer.get("linesTokens");
     }
     drawLine(line, lineTokens) {
         var tokenArr, token, i, n;
