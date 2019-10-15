@@ -1,72 +1,66 @@
 class MiniMap {
-    constructor(editor) {
+    constructor(cm) {
         this.isAttached = false;
-        if (!editor) {
-            throw new Error('Cannot create a minimap without an editor');
-        } //The Minimap's text editor.
-        this.editor = editor; //The width of the current Minimap.
+        this.cm = cm; //The width of the current Minimap.
         this.width = undefined; //The height of the current Minimap.
         this.height = undefined; //The Minimap float Side.
-        this.floatSide = undefined; //The Minimap's text editor.
+        this.doc = cm.getDoc(); //The Minimap's text editor.
         this.wrap = undefined;
         this.minimap = undefined;
-        this.linesText = {};
-        this.linesTokens = {};
+        this.lineTokens = {};
     }
-    get editorElement() {
-        return this.editor.getWrapperElement();
+    get node() {
+        return this.cm.getWrapperElement();
     }
-    get linesCount() {
-        return this.editor.lineCount();
+    get lineCount() {
+        return this.cm.lineCount();
     }
     get lineHeight() {
-        return Buffer.set("lineHeight", this.editor.display.cachedTextHeight);
+        return cache.set("lineHeight", this.cm.display.maxLine.height);
     }
     get firstVisibleLine() {
-        return Math.floor(this.scrollbar.pos / this.lineHeight);
+        return Math.floor(this.scrollbar.top / this.lineHeight);
     }
     get scrollbar() {
-        return this.editor.display.scrollbars.vert
+        return this.cm.getScrollInfo()
     }
     get maxVisibleLineRange() {
-        this.offsetHeight = this.editorElement.offsetHeight
-        const range = Math.ceil(this.editorElement.offsetHeight / this.lineHeight);
-        return range;
+        this.offsetHeight = this.node.offsetHeight
+        return Math.ceil(this.node.offsetHeight / this.lineHeight);
     }
     get maxVisibleRows() {
-        return Math.round(this.editorElement.offsetHeight / 3);
+        return Math.round(this.node.offsetHeight / 3);
     }
     get viewboxScrollRatio() {
-        const viewScrollHeight = (this.linesCount - this.maxVisibleRows + 1);
-        const editorScrollHeight = (this.linesCount - this.maxVisibleLineRange + 1);
+        const viewScrollHeight = (this.lineCount - this.maxVisibleRows + 1);
+        const editorScrollHeight = (this.lineCount - this.maxVisibleLineRange + 1);
         return viewScrollHeight / editorScrollHeight
     }
     get minimapScrollRatio() {
-        const mapScrollHeight = (this.linesCount - this.maxVisibleRows + 1);
-        const editorScrollHeight = (this.linesCount - this.maxVisibleLineRange + 1);
+        const mapScrollHeight = (this.lineCount - this.maxVisibleRows + 1);
+        const editorScrollHeight = (this.lineCount - this.maxVisibleLineRange + 1);
         return mapScrollHeight / editorScrollHeight
+    }
+    get scrollRatio() {
+        return this.cm.getScrollInfo().clientHeight / this.cm.getScrollInfo().height
     }
     updateLines() {
         let number,
-            lines = this.editor.getValue().split("\n"),
-            lineCount = Buffer.set("lineCount", this.editor.lineCount());
+            lines = this.cm.getValue().split("\n"),
+            lineCount = cache.set("lineCount", this.cm.lineCount());
         for (number = 0; number < lineCount; number++) {
-            this.linesTokens[number] = this.editor.getLineTokens(number);
-            this.linesText[number] = lines[number];
+            this.lineTokens[number] = this.cm.getLineTokens(number);
         }
-        Buffer.set("linesTokens", this.linesTokens);
-        Buffer.set("linesText", this.linesText);
-        Buffer.set("linesCount", this.linesCount)
+        cache.set("lineTokens", this.lineTokens);
+        cache.set("lineCount", this.lineCount)
     }
     updateBg() {
-        this.background = getComputedStyle(this.editor.getWrapperElement())["background-color"];
-        this.minimap.Background = this.background;
+        this.minimap.setBackground(getComputedStyle(this.cm.getWrapperElement())["background-color"]);
     }
     updateSyntaxColors() {
-        let tokens = ["#text", "#space", "comment", "string", "string-2", "number", "variable", "variable-2", "def", "operator", "keyword", "atom", "meta", "tag", "tag bracket", "attribute", "qualifier", "property", "builtin", "variable-3", "type", "string property", "tab"];
         this.syntaxColorsTokens = {};
-        for (var i = 0, len = tokens.length; i < len; i++) {
-            var key = tokens[i];
+        for (var i = 0, len = tokenlist.length; i < len; i++) {
+            var key = tokenlist[i];
             if (key == "#text") {
                 this.syntaxColorsTokens[key] = colorize("rgba(255,255,255)");
             } else if (key == "#space") {
@@ -75,46 +69,73 @@ class MiniMap {
                 const span = document.createElement("span");
                 span.className = "cm-" + key.replace(" ", " cm-");
                 span.innerText = span;
-                this.editorElement.appendChild(span);
+                this.node.appendChild(span);
                 this.syntaxColorsTokens[key] = colorize(getComputedStyle(span)["color"]);
                 span.remove();
             }
         }
-        Buffer.set("syntaxColorsTokens", this.syntaxColorsTokens);
+        cache.set("syntaxColorsTokens", this.syntaxColorsTokens);
     }
     updateSize() {
-        const height = this.editorElement.offsetHeight;
-        const width = this.editorElement.offsetWidth;
-        Buffer.set("editorHeight", this.offsetHeight = height);
-        Buffer.set("editorWidth", this.offsetWidth = width);
-        Buffer.set("miniMapHeight", height);
-        this.miniMapWidth = Buffer.set("miniMapWidth", this.editor.getOption("miniMapWidth"));
         const firstLine = this.firstVisibleLine;
         const lastLine = firstLine + this.maxVisibleLineRange;
-        this.minimap.resize(height, this.miniMapWidth);
-        this.minimap.resizeViewBox(this.maxVisibleLineRange);
-        this.canvas.resize(height, this.miniMapWidth);
+        this.offsetHeight = cache.set("editorHeight", this.node.offsetHeight);
+        this.offsetWidth = cache.set("editorWidth", this.node.offsetWidth);
+        this.miniMapHeight = cache.set("miniMapHeight", this.offsetHeight);
+        this.miniMapWidth = cache.set("miniMapWidth", this.cm.getOption("miniMapWidth"));
+        this.minimap.resize(this.miniMapHeight, this.miniMapWidth);
+        this.viewbox.resize(this.maxVisibleLineRange);
+        this.canvas.resize(this.miniMapHeight, this.miniMapWidth);
+    }
+    onScroll() {
+        const topRow = Math.ceil(this.firstVisibleLine * this.minimapScrollRatio);
+        this.front.draw(topRow, this.lineCount);
+        const factor = (this.offsetHeight - this.viewbox.height) / (this.scrollbar.height - this.offsetHeight)
+        let pos = this.scrollbar.top * factor;
+        this.viewbox.move(pos);
+    }
+    onDrag(event) {
+        const offsetTop = this.minimap.node.getBoundingClientRect().top;
+        if (event.which !== 1 && event.which !== 2 && !(event.touches != null)) return;
+        var move = (event) => {
+            var y = (event.clientY - offsetTop) / this.scrollRatio;
+            this.cm.scrollTo(null, y)
+        };
+        var done = (event) => {
+            dragSubscription();
+        };
+        addListener(move, done);
+        var dragSubscription = () => removeListener(move, done);
     }
     refresh() {
         this.updateLines();
         this.updateSize();
-        this.front.draw(this.firstVisibleLine, this.firstVisibleLine + this.maxVisibleRows);
-        console.log('this.firstVisibleLine, this.firstVisibleLine + this.maxVisibleRows: ', this.firstVisibleLine, this.firstVisibleLine + this.maxVisibleRows);
-    }
-    scrollTop() {
-        const topRow = Math.ceil(this.firstVisibleLine * this.minimapScrollRatio);
-        this.front.draw(topRow, this.linesCount);
-        const factor = (this.offsetHeight - this.minimap.viewBoxHeight) / (this.scrollbar.total - this.offsetHeight)
-        let pos = this.scrollbar.pos * factor;
-        this.minimap.moveViewBox(pos);
+        this.updateSyntaxColors();
+        this.front.draw(this.firstVisibleLine, this.lineCount);
     }
     init() {
-        this.minimap = new MiniMapElement(this.editor);
+        this.minimap = new MiniMapElement(this.cm);
+        this.viewbox = new ViewBoxElement(this.minimap.node);
         this.canvas = new CanvasElement(this.minimap.node);
         this.front = new Drawer(this.canvas.frontCTX);
-        this.back = new Drawer(this.canvas.backCTX);
         this.updateBg();
         this.updateSyntaxColors();
         this.refresh();
     }
+}
+function colorize(color) {
+    color = color.replace('rgb(', 'rgba(').replace(')', `, .55)`)
+    return color
+}
+function removeListener(mousemoveHandler, mouseupHandler) {
+    document.body.removeEventListener('mousemove', mousemoveHandler);
+    document.body.removeEventListener('mouseup', mouseupHandler);
+    document.body.removeEventListener('touchmove', mousemoveHandler);
+    document.body.removeEventListener('touchend', mouseupHandler);
+}
+function addListener(mousemoveHandler, mouseupHandler) {
+    document.body.addEventListener('mousemove', mousemoveHandler);
+    document.body.addEventListener('mouseup', mouseupHandler);
+    document.body.addEventListener('touchmove', mousemoveHandler);
+    document.body.addEventListener('touchend', mouseupHandler);
 }

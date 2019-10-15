@@ -1,5 +1,5 @@
 var tokennames = ["#text", "#space", "comment", "string", "string-2", "number", "variable", "variable-2", "def", "operator", "keyword", "atom", "meta", "tag", "tag bracket", "attribute", "qualifier", "property", "builtin", "variable-3", "type", "string property", "tab"];
-var Buffer = new class {
+var cache = new class {
     constructor() {
         this.buffer = {};
     }

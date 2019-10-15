@@ -3,7 +3,7 @@ class Drawer {
         this.context = context;
     }
     get maxRow() {
-        const h = Buffer.get("miniMapHeight");
+        const h = cache.get("miniMapHeight");
         const maxlines = Math.ceil(h / 3);
         return maxlines;
     }
@@ -11,29 +11,29 @@ class Drawer {
         return 3;
     }
     get SyntaxColor() {
-        return Buffer.get("syntaxColorsTokens");
+        return cache.get("syntaxColorsTokens");
     }
     clear(startY, endY) {
         var y = startY * 3 || 0,
-            h = endY * 3 || Buffer.get("editorHeight");
+            h = endY * 3 || cache.get("editorHeight");
         this.context.save();
-        this.context.clearRect(0, y, Buffer.get("miniMapWidth"), Buffer.get("editorHeight"));
+        this.context.clearRect(0, y, cache.get("miniMapWidth"), cache.get("editorHeight"));
         this.context.restore();
     }
     draw(firstRow, lastRow) {
         this.firstRow = firstRow;
-        this.lastRow = lastRow || Buffer.get("linesCount");
+        this.lastRow = lastRow || cache.get("lineCount");
         this.clear();
         this.context.save();
         for (let lineIndex = firstRow || 0; lineIndex < this.lastRow; lineIndex++) {
-            let line = this.linesTokens[lineIndex];
+            let line = this.lineTokens[lineIndex];
             if (line == undefined) return
             this.drawLine(lineIndex, line)
         }
         this.context.restore();
     }
-    get linesTokens() {
-        return Buffer.get("linesTokens");
+    get lineTokens() {
+        return cache.get("lineTokens");
     }
     drawLine(line, lineTokens) {
         var tokenArr, token, i, n;
@@ -67,8 +67,8 @@ class Drawer {
         this.context.fillStyle = color;
         this.context.fillRect(x, y, width, height)
     }
-    drawText(color, text, x, y) {
-        this.context.fillStyle = color;
-        this.context.fillText(text, x, y);
-    }
+    //drawText(color, text, x, y) {
+    //    this.context.fillStyle = color;
+    //    this.context.fillText(text, x, y);
+    //}
 };

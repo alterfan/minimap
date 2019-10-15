@@ -1,0 +1,29 @@
+html,
+body {
+    margin: 0;
+    padding: 0;
+    width: 100%;
+    height: 100vh
+}
+
+body {
+    font-family: 'Segoe Ui', Helvetica, sans-serif
+}
+
+.main {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    width: 100%;
+    height: 100%
+}
+
+h1 {
+    font-style: normal;
+    font-weight: 200;
+    color: #252525
+}
+
+.CodeMirror {
+    width: calc(100% - 64px)
+}
