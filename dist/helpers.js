@@ -7,6 +7,7 @@ const tokenlist = ["#text", "#space", "comment", "string", "string-2", "number",
 ];
 const viewboxStyle = {
     position: "absolute",
+    cursor: "pointer",
     zIndex: "1",
     background: "rgba(255,255,255,0.5)",
     transition: "background-color 300ms ease-in-out, opacity 300ms ease-in-out",
