@@ -6,8 +6,6 @@
 	    else
 	        mod(CodeMirror)
 	})((CodeMirror) => {
-
-
 	    CodeMirror.defineOption("miniMapWidth", 64);
 	    CodeMirror.defineOption("miniMapSide", "left");
 	    CodeMirror.defineOption("miniMap", false, function(cm, val, old) {
@@ -20,7 +18,6 @@
 	        }
 	        if (val) {
 	            var mm = new MiniMap(cm);
-	            mm.init();
 	            var node = mm.minimap.node,
 	                view = mm.viewbox.node;
 	            cm.on("change", () => {
@@ -33,17 +30,14 @@
 	                mm.updateSize()
 	            };
 	            CodeMirror.on(node, "dblclick", () => {
-	                mm.minimap.float()
+	                mm.updateDirection()
 	            });
 	            CodeMirror.on(view, "mousedown", (e) => {
 	                mm.onDrag(e)
 	            });
-	            node.ontouchstart = (e) => {
-	                setTimeout(() => {
-	                    mm.minimap.float()
-	                }, 300)
-	            }
+	            CodeMirror.on(view, "touchstart", (e) => {
+	                mm.onDrag(e)
+	            });
 	        }
-
 	    });
 	})

@@ -21,8 +21,9 @@ class Drawer {
         this.context.restore();
     }
     draw(firstRow, lastRow) {
+        console.log('firstRow, lastRow: ', firstRow, lastRow);
         this.firstRow = firstRow;
-        this.lastRow = lastRow || cache.get("lineCount");
+        this.lastRow = lastRow;
         this.clear();
         this.context.save();
         for (let lineIndex = firstRow || 0; lineIndex < this.lastRow; lineIndex++) {

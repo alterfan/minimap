@@ -1,31 +1,34 @@
 class MiniMap {
     constructor(cm) {
-        this.isAttached = false;
         this.cm = cm; //The width of the current Minimap.
-        this.width = undefined; //The height of the current Minimap.
-        this.height = undefined; //The Minimap float Side.
-        this.doc = cm.getDoc(); //The Minimap's text editor.
-        this.wrap = undefined;
-        this.minimap = undefined;
+        this.changed = false;
         this.lineTokens = {};
+
+        this.minimap = new MiniMapElement(this.cm);
+        this.viewbox = new ViewBoxElement(this.minimap.node);
+        this.canvas = new CanvasElement(this.minimap.node);
+        this.drawer = new Drawer(this.canvas.frontCTX);
+        this.updateDirection();
+        this.refresh()
     }
     get node() {
         return this.cm.getWrapperElement();
     }
     get lineCount() {
-        return this.cm.lineCount();
+        return cache.set("lineCount", this.cm.lineCount())
     }
     get lineHeight() {
         return cache.set("lineHeight", this.cm.display.maxLine.height);
     }
     get firstVisibleLine() {
+        console.log('this.scrollbar.top: ', this.scrollbar.top,this.lineHeight);
         return Math.floor(this.scrollbar.top / this.lineHeight);
+        
     }
     get scrollbar() {
         return this.cm.getScrollInfo()
     }
     get maxVisibleLineRange() {
-        this.offsetHeight = this.node.offsetHeight
         return Math.ceil(this.node.offsetHeight / this.lineHeight);
     }
     get maxVisibleRows() {
@@ -46,7 +49,6 @@ class MiniMap {
     }
     updateLines() {
         let number,
-            lines = this.cm.getValue().split("\n"),
             lineCount = cache.set("lineCount", this.cm.lineCount());
         for (number = 0; number < lineCount; number++) {
             this.lineTokens[number] = this.cm.getLineTokens(number);
@@ -77,62 +79,79 @@ class MiniMap {
         cache.set("syntaxColorsTokens", this.syntaxColorsTokens);
     }
     updateSize() {
-        const firstLine = this.firstVisibleLine;
-        const lastLine = firstLine + this.maxVisibleLineRange;
         this.offsetHeight = cache.set("editorHeight", this.node.offsetHeight);
         this.offsetWidth = cache.set("editorWidth", this.node.offsetWidth);
         this.miniMapHeight = cache.set("miniMapHeight", this.offsetHeight);
         this.miniMapWidth = cache.set("miniMapWidth", this.cm.getOption("miniMapWidth"));
         this.minimap.resize(this.miniMapHeight, this.miniMapWidth);
-        this.viewbox.resize(this.maxVisibleLineRange);
+        this.viewbox.resize(this.maxVisibleLineRange, this.miniMapWidth);
         this.canvas.resize(this.miniMapHeight, this.miniMapWidth);
+        this.baseWidth = this.changed ? this.baseWidth : this.node.offsetWidth;
+        this.node.parentNode.style.width = this.baseWidth + "px"
+        this.newWidth = this.node.parentNode.offsetWidth - this.cm.getOption("miniMapWidth");
+        this.node.parentNode.style.width = "";
+        this.cm.setSize(this.newWidth, null);
+        this.node.style.maxWidth = this.node.offsetParent.offsetWidth - this.cm.getOption("miniMapWidth") + "px";
+        this.baseWidth = this.newWidth + this.cm.getOption("miniMapWidth");
+        this.changed = true;
+    }
+    updateDirection() {
+        if (this.side)
+            this.side = this.cm.getOption("miniMapSide") === "left" ? "right" : "left";
+        else
+            this.side = this.cm.getOption("miniMapSide");
+        this.cm.setOption("miniMapSide", this.side);
+        this.minimap.setSide(this.side);
     }
     onScroll() {
-        const topRow = Math.ceil(this.firstVisibleLine * this.minimapScrollRatio);
-        this.front.draw(topRow, this.lineCount);
+        const top = Math.ceil(this.firstVisibleLine * this.minimapScrollRatio);
         const factor = (this.offsetHeight - this.viewbox.height) / (this.scrollbar.height - this.offsetHeight)
-        let pos = this.scrollbar.top * factor;
+        const pos = this.scrollbar.top * factor;
         this.viewbox.move(pos);
+        this.drawer.draw(top, this.lineCount);
     }
-    onDrag(event) {
-        const offsetTop = this.minimap.node.getBoundingClientRect().top;
-        if (event.which !== 1 && event.which !== 2 && !(event.touches != null)) return;
-        var move = (event) => {
-            var y = (event.clientY - offsetTop) / this.scrollRatio;
+    onDrag(e) {
+        if (e.which !== 1 && e.which !== 2 && !(e.touches != null)) return;
+        if (e.touches) {
+            e.preventDefault()
+            e = e.touches[0]
+        }
+        const mapOffset = this.minimap.node.getBoundingClientRect().top;
+        const vieboxOffset = e.clientY - this.viewbox.node.getBoundingClientRect().top;
+        var dragging = (e) => {
+            if (e.touches) {
+                e.preventDefault()
+                e.clientY = e.touches[0].clientY
+            }
+            var y = (e.clientY - mapOffset - vieboxOffset) / this.scrollRatio;
             this.cm.scrollTo(null, y)
         };
-        var done = (event) => {
-            dragSubscription();
-        };
-        addListener(move, done);
-        var dragSubscription = () => removeListener(move, done);
+        var done = () => offDrag()
+        var offDrag = () => removeListener(dragging, done);
+        addListener(dragging, done);
     }
     refresh() {
+        const top = Math.ceil(this.firstVisibleLine * this.minimapScrollRatio);
+        this.updateBg();
         this.updateLines();
         this.updateSize();
         this.updateSyntaxColors();
-        this.front.draw(this.firstVisibleLine, this.lineCount);
-    }
-    init() {
-        this.minimap = new MiniMapElement(this.cm);
-        this.viewbox = new ViewBoxElement(this.minimap.node);
-        this.canvas = new CanvasElement(this.minimap.node);
-        this.front = new Drawer(this.canvas.frontCTX);
-        this.updateBg();
-        this.updateSyntaxColors();
-        this.refresh();
+        this.drawer.draw(top, this.lineCount);
     }
 }
+
 function colorize(color) {
     color = color.replace('rgb(', 'rgba(').replace(')', `, .55)`)
     return color
 }
+
 function removeListener(mousemoveHandler, mouseupHandler) {
     document.body.removeEventListener('mousemove', mousemoveHandler);
     document.body.removeEventListener('mouseup', mouseupHandler);
     document.body.removeEventListener('touchmove', mousemoveHandler);
     document.body.removeEventListener('touchend', mouseupHandler);
 }
+
 function addListener(mousemoveHandler, mouseupHandler) {
     document.body.addEventListener('mousemove', mousemoveHandler);
     document.body.addEventListener('mouseup', mouseupHandler);

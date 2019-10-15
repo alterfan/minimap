@@ -7,7 +7,6 @@ class ViewBoxElement {
     move(scrollPos) {
         scrollPos = Math.round(scrollPos)
         this.node.style.transform = "translateY(" + (scrollPos) + "px)";
-
     }
     hide() {
         this.node.style.opacity = 0
@@ -20,10 +19,13 @@ class ViewBoxElement {
             this.node.style[prop] = cssObject[prop]
         }
     }
-    resize(visibleLines) {
-        this.height = visibleLines * 3;
-        this.node.style.width = cache.get("miniMapWidth") + "px";
-        this.node.style.height = this.height + "px";
+    resize(visibleLines, width) {
+        const height = visibleLines * 3;
+        if (width != this.width) this.node.style.width = width + "px";
+        if (height != this.height) this.node.style.height = height + "px";
+        this.height = height;
+        this.width = width;
+
     }
     attach(parent) {
         parent.appendChild(this.node);
@@ -55,32 +57,20 @@ class MiniMapElement {
         this.height = undefined;
         this.attached = false;
         this.cm = cm;
-        this.attach();
-        this.float();
-    }
-    attach() {
         this.node = document.createElement('div');
-        this.node.className = 'minimap';
-        var width = this.cm.getWrapperElement().offsetWidth;
-        this.cm.addPanel(this.node, {
-            //  position: "after-top",
-            stable: true
-        });
-        this.cm.getWrapperElement().style.width = width - this.cm.getOption("miniMapWidth") + "px";
+        this.cm.addPanel(this.node);
     }
     resize(height, width) {
         if (width != this.width) this.node.style.width = width + "px";
         if (height != this.height) this.node.style.height = height + "px";
         this.width = width;
-        this.height = height
+        this.height = height;
+
     }
     setBackground(bg) {
         this.node.style.backgroundColor = bg;
     }
-    float() {
-        if (this.side) this.side = this.cm.getOption("miniMapSide") === "left" ? "right" : "left";
-        if (!this.side) this.side = this.cm.getOption("miniMapSide");
-        this.cm.setOption("miniMapSide", this.side);
-        this.node.style.float = this.side;
+    setSide(side) {
+        this.node.style.float = side;
     }
 }
