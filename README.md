@@ -49,4 +49,4 @@ var editor = CodeMirror("#editor", {
 ## License
 
 MIT
-git remote set-url [--push] minimap https://github.com/alterfan/MiniMap-CodeMirror.git [https://github.com/alterfan/cm-minimap-addon.git]
+git remote set-url [--push] minimap https://github.com/alterfan/minimap.git [https://github.com/alterfan/minimap.git]
