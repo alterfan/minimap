@@ -1,16 +1,12 @@
 # MiniMap for CodeMirror
 
-[![N|Solid](https://badrams.ru/minimap/sreenshot.png)](https://nodesource.com/products/nsolid)
-
 **MiniMap** for CodeMirror is a addon for CodeMirror's based editors.
 
 -   Change map width
--   Can be used as alternative for standard CodeMirror add-on simplescroll.js
 
 #### New Features!
-
 -   Added scrollbar functionality
--   Fixed some bugs
+-   Mouse Double-click change MiniMap side attach.
 
 #### How to install:
 
