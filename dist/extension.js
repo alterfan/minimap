@@ -18,17 +18,22 @@
 	        }
 	        if (val) {
 	            var mm = new MiniMap(cm);
+	            mm.refresh()
 	            var node = mm.minimap.node,
 	                view = mm.viewbox.node;
-	            cm.on("change", () => {
-	                mm.refresh()
+
+	            cm.on("beforeChange", function(cm, change) {
+	                mm.onBeforeChange(change);
+
 	            });
-	            cm.on("scroll", (e) => {
-	                mm.onScroll();
+
+	            cm.on("change", (cm, change, e) => {
+
+	                mm.onChange("change")
 	            });
-	            window.onresize = (e) => {
-	                mm.updateSize()
-	            };
+	            CodeMirror.on(mm.cm.getScrollerElement(), "scroll", (e) => {
+	                mm.onScroll(e);
+	            });
 	            CodeMirror.on(node, "dblclick", () => {
 	                mm.updateDirection()
 	            });
@@ -38,6 +43,9 @@
 	            CodeMirror.on(view, "touchstart", (e) => {
 	                mm.onDrag(e)
 	            });
+	            window.onresize = (e) => {
+	                mm.updateSize()
+	            };
 	        }
 	    });
 	})

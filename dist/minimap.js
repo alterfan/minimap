@@ -3,7 +3,6 @@ class MiniMap {
         this.cm = cm; //The width of the current Minimap.
         this.changed = false;
         this.lineTokens = {};
-
         this.minimap = new MiniMapElement(this.cm);
         this.viewbox = new ViewBoxElement(this.minimap.node);
         this.canvas = new CanvasElement(this.minimap.node);
@@ -21,9 +20,7 @@ class MiniMap {
         return cache.set("lineHeight", this.cm.display.maxLine.height);
     }
     get firstVisibleLine() {
-        console.log('this.scrollbar.top: ', this.scrollbar.top,this.lineHeight);
         return Math.floor(this.scrollbar.top / this.lineHeight);
-        
     }
     get scrollbar() {
         return this.cm.getScrollInfo()
@@ -35,29 +32,17 @@ class MiniMap {
         return Math.round(this.node.offsetHeight / 3);
     }
     get viewboxScrollRatio() {
-        const viewScrollHeight = (this.lineCount - this.maxVisibleRows + 1);
-        const editorScrollHeight = (this.lineCount - this.maxVisibleLineRange + 1);
+        const viewScrollHeight = (cache.lineCount - this.maxVisibleRows + 1);
+        const editorScrollHeight = (cache.lineCount - this.maxVisibleLineRange + 1);
         return viewScrollHeight / editorScrollHeight
     }
     get minimapScrollRatio() {
-        const mapScrollHeight = (this.lineCount - this.maxVisibleRows + 1);
-        const editorScrollHeight = (this.lineCount - this.maxVisibleLineRange + 1);
+        const mapScrollHeight = (cache.lineCount - this.maxVisibleRows + 1);
+        const editorScrollHeight = (cache.lineCount - this.maxVisibleLineRange + 1);
         return mapScrollHeight / editorScrollHeight
     }
     get scrollRatio() {
         return this.cm.getScrollInfo().clientHeight / this.cm.getScrollInfo().height
-    }
-    updateLines() {
-        let number,
-            lineCount = cache.set("lineCount", this.cm.lineCount());
-        for (number = 0; number < lineCount; number++) {
-            this.lineTokens[number] = this.cm.getLineTokens(number);
-        }
-        cache.set("lineTokens", this.lineTokens);
-        cache.set("lineCount", this.lineCount)
-    }
-    updateBg() {
-        this.minimap.setBackground(getComputedStyle(this.cm.getWrapperElement())["background-color"]);
     }
     updateSyntaxColors() {
         this.syntaxColorsTokens = {};
@@ -79,20 +64,19 @@ class MiniMap {
         cache.set("syntaxColorsTokens", this.syntaxColorsTokens);
     }
     updateSize() {
-        this.offsetHeight = cache.set("editorHeight", this.node.offsetHeight);
-        this.offsetWidth = cache.set("editorWidth", this.node.offsetWidth);
-        this.miniMapHeight = cache.set("miniMapHeight", this.offsetHeight);
-        this.miniMapWidth = cache.set("miniMapWidth", this.cm.getOption("miniMapWidth"));
-        this.minimap.resize(this.miniMapHeight, this.miniMapWidth);
-        this.viewbox.resize(this.maxVisibleLineRange, this.miniMapWidth);
-        this.canvas.resize(this.miniMapHeight, this.miniMapWidth);
+        cache.editorOffsetWidth = cache.editorOffsetWidth = this.node.offsetWidth
+        cache.miniMapHeight = this.node.offsetHeight;
+        cache.miniMapWidth = this.cm.getOption("miniMapWidth");
+        this.minimap.resize(cache.miniMapHeight, cache.miniMapWidth);
+        this.viewbox.resize(this.maxVisibleLineRange, cache.miniMapWidth);
+        this.canvas.resize(cache.miniMapHeight, cache.miniMapWidth);
         this.baseWidth = this.changed ? this.baseWidth : this.node.offsetWidth;
         this.node.parentNode.style.width = this.baseWidth + "px"
-        this.newWidth = this.node.parentNode.offsetWidth - this.cm.getOption("miniMapWidth");
+        this.newWidth = this.node.parentNode.offsetWidth - cache.miniMapWidth;
         this.node.parentNode.style.width = "";
         this.cm.setSize(this.newWidth, null);
-        this.node.style.maxWidth = this.node.offsetParent.offsetWidth - this.cm.getOption("miniMapWidth") + "px";
-        this.baseWidth = this.newWidth + this.cm.getOption("miniMapWidth");
+        this.node.style.maxWidth = this.node.offsetParent.offsetWidth - cache.miniMapWidth + "px";
+        this.baseWidth = this.newWidth + cache.miniMapWidth;
         this.changed = true;
     }
     updateDirection() {
@@ -103,12 +87,13 @@ class MiniMap {
         this.cm.setOption("miniMapSide", this.side);
         this.minimap.setSide(this.side);
     }
-    onScroll() {
+    onScroll(e) {
         const top = Math.ceil(this.firstVisibleLine * this.minimapScrollRatio);
-        const factor = (this.offsetHeight - this.viewbox.height) / (this.scrollbar.height - this.offsetHeight)
+        const total = Math.ceil(cache.miniMapHeight / 3)
+        const factor = (cache.miniMapHeight - this.viewbox.height) / (this.scrollbar.height - cache.miniMapHeight)
         const pos = this.scrollbar.top * factor;
         this.viewbox.move(pos);
-        this.drawer.draw(top, this.lineCount);
+        this.drawer.draw(top, top + total, e);
     }
     onDrag(e) {
         if (e.which !== 1 && e.which !== 2 && !(e.touches != null)) return;
@@ -130,28 +115,59 @@ class MiniMap {
         var offDrag = () => removeListener(dragging, done);
         addListener(dragging, done);
     }
+    updateTextLines(from, to) {
+        let lineTokens = {},
+            number = from || 0,
+            lineCount = to || cache.set("lineCount", this.cm.lineCount());
+        this.textLines = this.cm.getValue().split("\n")
+        for (number; number < lineCount; number++) {
+            lineTokens[number] = this.cm.getLineTokens(number);
+        }
+        cache.lineTokens = lineTokens;
+        cache.lineCount = lineCount
+    }
+    updateBg() {
+        this.minimap.setBackground(getComputedStyle(this.cm.getWrapperElement())["background-color"]);
+    }
+    onBeforeChange(change) {
+        var before = this.cm.getRange({
+            line: 0,
+            ch: 0
+        }, change.from).split("\n");
+        var text = this.cm.getRange(change.from, change.to);
+        var after = this.cm.getRange(change.to, {
+            line: this.cm.lineCount() + 1,
+            ch: 0
+        }).split("\n");
+        this.from = change.from.line;
+        this.to = after.length;
+    }
+    onChange() {
+        this.updateTextLines();
+        this.updateSize();
+        cache.textLines = this.textLines;
+        const total = Math.ceil(cache.miniMapHeight / 3)
+        this.top = Math.ceil(this.firstVisibleLine * this.minimapScrollRatio);
+        this.drawer.draw(this.top, this.from + total);
+    }
     refresh() {
-        const top = Math.ceil(this.firstVisibleLine * this.minimapScrollRatio);
         this.updateBg();
-        this.updateLines();
+        this.updateTextLines();
         this.updateSize();
         this.updateSyntaxColors();
-        this.drawer.draw(top, this.lineCount);
+        this.drawer.draw(0, this.lineCount);
     }
 }
-
 function colorize(color) {
     color = color.replace('rgb(', 'rgba(').replace(')', `, .55)`)
     return color
 }
-
 function removeListener(mousemoveHandler, mouseupHandler) {
     document.body.removeEventListener('mousemove', mousemoveHandler);
     document.body.removeEventListener('mouseup', mouseupHandler);
     document.body.removeEventListener('touchmove', mousemoveHandler);
     document.body.removeEventListener('touchend', mouseupHandler);
 }
-
 function addListener(mousemoveHandler, mouseupHandler) {
     document.body.addEventListener('mousemove', mousemoveHandler);
     document.body.addEventListener('mouseup', mouseupHandler);

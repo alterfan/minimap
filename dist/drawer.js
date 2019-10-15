@@ -3,7 +3,7 @@ class Drawer {
         this.context = context;
     }
     get maxRow() {
-        const h = cache.get("miniMapHeight");
+        const h = cache.miniMapHeight;
         const maxlines = Math.ceil(h / 3);
         return maxlines;
     }
@@ -14,32 +14,39 @@ class Drawer {
         return cache.get("syntaxColorsTokens");
     }
     clear(startY, endY) {
-        var y = startY * 3 || 0,
-            h = endY * 3 || cache.get("editorHeight");
+        
+        
+
+        startY = startY ? startY * 3 : 0
+        endY = endY ? endY * 3 : this.maxRow;
+
         this.context.save();
-        this.context.clearRect(0, y, cache.get("miniMapWidth"), cache.get("editorHeight"));
+        this.context.clearRect(0, startY, cache.miniMapWidth, this.maxRow * 3);
         this.context.restore();
     }
-    draw(firstRow, lastRow) {
-        console.log('firstRow, lastRow: ', firstRow, lastRow);
-        this.firstRow = firstRow;
-        this.lastRow = lastRow;
-        this.clear();
-        this.context.save();
-        for (let lineIndex = firstRow || 0; lineIndex < this.lastRow; lineIndex++) {
-            let line = this.lineTokens[lineIndex];
-            if (line == undefined) return
-            this.drawLine(lineIndex, line)
+    draw(from, to, e) {
+        var curent, y, end;
+        if (e)
+            curent = e.type == "scroll" ? 0 : from;
+        this.clear(0, to - from);
+        
+        y = 1;
+        curent = from ? from : 0;
+        end = to ? to : cache.lineCount;
+        for (curent; curent < end; curent++) {
+            const tokens = this.lineTokens[curent];
+            if (tokens == undefined) return
+            this.drawLine(y, tokens);
+            y = y + 3
         }
-        this.context.restore();
     }
     get lineTokens() {
-        return cache.get("lineTokens");
+        return cache.lineTokens;
     }
-    drawLine(line, lineTokens) {
+    drawLine(y, lineTokens, event) {
         var tokenArr, token, i, n;
         this.posX = 1;
-        this.posY = 1 + this.lineHeight * (line - this.firstRow);
+        this.posY = y;
         for (i = 0; i < lineTokens.length; i++) {
             token = lineTokens[i];
             if (token.type == null) {
