@@ -15,13 +15,33 @@ body {
     flex-direction: column;
     align-items: center;
     width: 100%;
-    height: 100%
+    height: 100%;
+    background: #0f0e0a;
 }
 
-h1 {
+.main>h1 {
     font-style: normal;
     font-weight: 200;
-    color: #252525
+    color: #ffffff
+}
+
+.main>h4 {
+    margin: 0;
+    font-style: italic;
+    font-weight: 200;
+    color: #ffffff
+}
+
+.main>h4>a {
+    text-decoration: none;
+    color: #d30707;
+}
+
+.main>h4>a,
+.main>h4>a:visited,
+.main>h4>a:link,
+.quasilink {
+    color: #a21313;
 }
 
 .CodeMirror {

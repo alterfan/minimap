@@ -37,17 +37,17 @@ class CanvasElement {
         this.attachCanvasLayers(parent);
     }
     initCanvasLayer() {
-        this.frontCanvasLayer = document.createElement('canvas');
-        this.frontCanvasLayer.className = "front-layer";
-        this.frontCanvasLayer.style.zIndex = "0";
-        this.frontCTX = this.frontCanvasLayer.getContext('2d');
+        this.node = document.createElement('canvas');
+        this.node.className = "front-layer";
+        this.node.style.zIndex = "0";
+        this.frontCTX = this.node.getContext('2d');
     }
     attachCanvasLayers(parent) {
-        parent.appendChild(this.frontCanvasLayer)
+        parent.appendChild(this.node)
     }
     resize(height, width) {
-        if (width != this.frontCanvasLayer.width) this.frontCanvasLayer.width = width;
-        if (height != this.frontCanvasLayer.height) this.frontCanvasLayer.height = height;
+        if (width != this.node.width) this.node.width = width;
+        if (height != this.node.height) this.node.height = height;
     }
 };
 class MiniMapElement {

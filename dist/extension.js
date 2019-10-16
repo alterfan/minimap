@@ -23,28 +23,30 @@
 	                view = mm.viewbox.node;
 
 	            cm.on("beforeChange", function(cm, change) {
-	                mm.onBeforeChange(change);
-
+	          
 	            });
 
 	            cm.on("change", (cm, change, e) => {
-
-	                mm.onChange("change")
+					mm.BeforeChange(change);
+	                mm.Change("change")
 	            });
 	            CodeMirror.on(mm.cm.getScrollerElement(), "scroll", (e) => {
-	                mm.onScroll(e);
+	                mm.Scroll(e);
 	            });
 	            CodeMirror.on(node, "dblclick", () => {
-	                mm.updateDirection()
+	                mm.Binding()
 	            });
 	            CodeMirror.on(view, "mousedown", (e) => {
-	                mm.onDrag(e)
+	                mm.Drag(e)
+				});
+				CodeMirror.on( mm.canvas.node, "mousedown", (e) => {
+	                mm.ScrollTo(e)
 	            });
 	            CodeMirror.on(view, "touchstart", (e) => {
-	                mm.onDrag(e)
+	                mm.Drag(e)
 	            });
-	            window.onresize = (e) => {
-	                mm.updateSize()
+	            window.onresize = (e) => {  
+	                mm.Resize(e)
 	            };
 	        }
 	    });
