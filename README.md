@@ -13,7 +13,6 @@
 To use MiniMap is to simply load the script after all CodeMirror .js files:
 
 ```html
-    <script src="./dist/helpers.js" type="text/javascript"></script>
     <script src="./dist/cache.js" type="text/javascript"></script>
     <script src="./dist/drawer.js" type="text/javascript"></script>
     <script src="./dist/elements.js" type="text/javascript"></script>
