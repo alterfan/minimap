@@ -12,144 +12,73 @@
     <link rel="stylesheet" href="./lib/codemirror/addon/scroll/simplescrollbars.css">
     <link rel="stylesheet" href="./lib/codemirror/theme/dracula.css">
     <link rel="stylesheet" href="./style.css" />
+    <style>
+        .CodeMirror {
+            font-size: 11px;
+        }
+    </style>
 </head>
 
+<body>
+    <div class="main">
+        <div class="main_container">
+            <h1>Minimap</h1>
+            <h4>
+                <a href="https://codemirror.net/">CodeMirror</a> addon
+            </h4>
+            <textarea id="javascript">
+<!doctype html>
+<html>
+<head>
+    <title>Minimap</title>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+    <meta name="HandheldFriendly" content="True" />
+    <link rel="stylesheet" href="./lib/codemirror/lib/codemirror.css">
+    <link rel="stylesheet" href="./lib/codemirror/addon/scroll/simplescrollbars.css">
+    <link rel="stylesheet" href="./lib/codemirror/theme/dracula.css">
+    <link rel="stylesheet" href="./style.css" />
+</head>
 <body>
     <div class="main">
         <h1>Minimap</h1>
         <h4>
             <a href="https://codemirror.net/">CodeMirror</a> addon
         </h4>
-        <textarea id="javascript">
-const HIGHLIGHT_COLORS = {
-    "#text": "#fff",
-    "#space": "rgba(0,0,0,0)",
-    "comment": null,
-    "string": null,
-    "string-2": null,
-    "number": null,
-    "variable": null,
-    "variable-2": null,
-    "def": null,
-    "operator": null,
-    "keyword": null,
-    "atom": null,
-    "meta": null,
-    "tag": null,
-    "tag bracket": null,
-    "attribute": null,
-    "qualifier": null,
-    "property": null,
-    "builtin": null,
-    "variable-3": null,
-    "type": null,
-    "string property": null,
-    "tab": null
-};
-const SETTINGS_DEFAULT = {
-    width: 1,
-    fontSize: 2,
-    simpleMode: false,
-    debug: false,
-    cm: null
-};
-var Cache = new class {
-    constructor() {
-        this.buffer = undefined
-    }
-    getBuffer() {
-        this.buffer = this.buffer || {}
-        return this.buffer;
-    }
-    getCachedTarget(target) {
-        var cachedTarget = this.cached()[target] || {}
-        return cachedTarget
-    };
-    getCachedTarget(target, property) {
-        var cachedTarget = this.getCachedTarget(target)[property] || {}
-        return this.getCachedTarget(target)[property]
-    };
-    setBuffer(target, property, data) {
-        this.buffer[target][property] = data;
-    };
-}
-var updateSyntaxColor = function updateSyntaxColor(wrapper, defaultSyntaxColors) {
-    var newSyntaxColors = {};
-    for (const key in defaultSyntaxColors) {
-        if (key == "#text") {
-            newSyntaxColors[key] = colorize("rgba(255,255,255)");
-        } else if (key == "#space") {
-            newSyntaxColors[key] = "rgba(0,0,0,0)";
-        } else {
-            const span = document.createElement("span");
-            span.className = "cm-" + key.replace(" ", " cm-");
-            span.innerText = span;
-            wrapper.appendChild(span);
-            newSyntaxColors[key] = colorize(getComputedStyle(span)["color"]);
-            span.remove();
-        }
-    }
-    return newSyntaxColors
-}
-function lineHeight(editor) {
-    return editor.getScrollerElement().querySelector(".CodeMirror-line").offsetHeight;
-}
-var requestAnimFrame = () => {
-    return window.requestAnimationFrame ||
-        window.webkitRequestAnimationFrame ||
-        window.mozRequestAnimationFrame ||
-        window.oRequestAnimationFrame ||
-        window.msRequestAnimationFrame ||
-        function(callback) {
-            window.setTimeout(callback, 1000 / 60);
-        };
-};
-class Drag {
-    static context(context) {
-        this.dragSubscription = undefined
-        this.movementX = undefined
-        this.context = context
-    }
-    static start(e) {
-        if (e.which !== 1 && e.which !== 2 && !(e.touches != null)) return;
-        this.startX = e.clientX;
-        this.startY = e.clientY;
-        let move = (e) => this.moving(e);
-        let done = (e) => this.done(e);
-        addListener(move, done);
-        this.dragSubscription = () => removeListener(move, done)
-    }
-    static moving(e) {
-        var valX = e.clientX - this.startX;
-        var valY = e.clientY - this.startY;
-        valX = valX < 0 ? -valX : valX;
-        valY = valY < 0 ? -valY : valY;
-        this.axis = valX > valY ? "x" : "y";
-        if (this.axis == "x" && valX > e.target.offsetWidth * 3) {
-            this.context.reFloat((e.movementX) < 0 ? "left" : "right")
-        }
-    }
-    static done(e) {
-        this.dragSubscription();
-    }
-}
-function removeListener(mousemoveHandler, mouseupHandler) {
-    document.body.removeEventListener('mousemove', mousemoveHandler);
-    document.body.removeEventListener('mouseup', mouseupHandler);
-    document.body.removeEventListener('mouseleave', mouseupHandler);
-    document.body.removeEventListener('touchmove', mousemoveHandler);
-    document.body.removeEventListener('touchend', mouseupHandler);
-}
-function addListener(mousemoveHandler, mouseupHandler) {
-    document.body.addEventListener('mousemove', mousemoveHandler);
-    document.body.addEventListener('mouseup', mouseupHandler);
-    document.body.addEventListener('mouseleave', mouseupHandler);
-    document.body.addEventListener('touchmove', mousemoveHandler);
-    document.body.addEventListener('touchend', mouseupHandler);
-}
-        </textarea>
-    </div>
 
+    </div>
+    <script src="./lib/codemirror/lib/codemirror.js">
+    </script>
+    <script src="./lib/codemirror/mode/markdown/markdown.js"></script>
+    <script src="./lib/codemirror/mode/xml/xml.js"></script>
+    <script src="./lib/codemirror/mode/htmlmixed/htmlmixed.js"></script>
+    <script src="./lib/codemirror/addon/scroll/simplescrollbars.js"></script>
+    <script src="./lib/codemirror/addon/display/panel.js"></script>
+    <!-- minimap -->
+    <script src="./dist/helpers.js" type="text/javascript"></script>
+    <script src="./dist/cache.js" type="text/javascript"></script>
+    <script src="./dist/drawer.js" type="text/javascript"></script>
+    <script src="./dist/elements.js" type="text/javascript"></script>
+    <script src="./dist/minimap.js" type="text/javascript"></script>
+    <script src="./dist/extension.js" type="text/javascript"></script>
+    <script>
+        var editor = CodeMirror.fromTextArea(document.getElementById("javascript"), {
+            mode: "htmlmixed",
+            lineNumbers: true,
+            scrollbarStyle: "simple",
+            theme: "dracula",
+            miniMap: true,
+            miniMapSide: "left"
+        });
+    </script>
+</body>
+
+</html>
+            </textarea>
+        </div>
+    </div>
     <script src="./lib/codemirror/lib/codemirror.js"></script>
     <script src="./lib/codemirror/mode/markdown/markdown.js"></script>
     <script src="./lib/codemirror/mode/xml/xml.js"></script>
@@ -164,7 +93,9 @@ function addListener(mousemoveHandler, mouseupHandler) {
     <script src="./dist/minimap.js" type="text/javascript"></script>
     <script src="./dist/extension.js" type="text/javascript"></script>
     <script>
-        var editor = CodeMirror.fromTextArea(document.getElementById("javascript"), {
+        var textarea = document.getElementById("javascript");
+
+        var editor = CodeMirror.fromTextArea(textarea, {
             mode: "javascript",
             lineNumbers: true,
             scrollbarStyle: "simple",
@@ -172,6 +103,9 @@ function addListener(mousemoveHandler, mouseupHandler) {
             miniMap: true,
             miniMapSide: "left"
         });
+
+        textarea.innerHTML = text;
+        var text = ``;
     </script>
 </body>
 

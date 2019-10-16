@@ -7,44 +7,89 @@ body {
 }
 
 body {
-    font-family: 'Segoe Ui', Helvetica, sans-serif
-}
-
-.main {
+    font-family: 'Segoe Ui', Helvetica, sans-serif;
     display: flex;
     flex-direction: column;
     align-items: center;
-    width: 100%;
+}
+
+.main {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
     height: 100%;
+    width: 100vw;
     background: #0f0e0a;
 }
 
-.main>h1 {
+.main_container {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    align-items: left;
+    height: 100%;
+
+}
+
+@media screen and (min-width: 1140px) {
+    .main_container {
+        max-width: 1100px;
+        width: 100%;
+    }
+}
+
+@media screen and (min-width: 1139.98px) {
+    .main_container {
+        max-width: 900px;
+        width: 100%;
+    }
+}
+
+@media screen and (min-width: 939.98px) {
+    .main_container {
+        max-width: 700px;
+        width: 100%;
+    }
+}
+
+@media screen and (max-width: 719.98px) {
+    .main_container {
+        width: 100vw;
+    }
+}
+
+h1 {
     font-style: normal;
     font-weight: 200;
-    color: #ffffff
+    font-size: 300%;
+    line-height: 100%;
+    margin-bottom: 2%;
+    color: #efeff1
 }
 
-.main>h4 {
+h4 {
     margin: 0;
-    font-style: italic;
+    font-style: normal;
     font-weight: 200;
-    color: #ffffff
+    color: #efeff1;
+    width: 100%;
+    border-bottom: 2px solid #fff;
+    margin-bottom: 1%;
 }
 
-.main>h4>a {
+a {
     text-decoration: none;
     color: #d30707;
 }
 
-.main>h4>a,
-.main>h4>a:visited,
-.main>h4>a:link,
+a,
+a:visited,
+a:link,
 .quasilink {
     color: #a21313;
 }
 
-.CodeMirror {
-    font-size: 12px;
-
+.main_container>div {
+    box-shadow: 2px 2px 2px #131313;
 }

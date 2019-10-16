@@ -48,7 +48,7 @@ class MiniMap {
         return {
             top: Math.ceil(this.firstVisibleLine * this.minimapScrollRatio),
             total: Math.ceil(cache.miniMapHeight / 3),
-            pos: this.scrollbar.top * (cache.miniMapHeight - this.viewbox.height) / (this.scrollbar.height - cache.miniMapHeight),
+            pos: this.scrollbar.top * (this.getVieboxScrollHeight - this.viewbox.height) / (this.scrollbar.height - cache.miniMapHeight),
         };
     }
     get getVieboxPos() {
@@ -58,12 +58,16 @@ class MiniMap {
     get getMinimapPos() {
         return cache.MinimapPos = this.minimap.node.getBoundingClientRect();
     }
+    get getVieboxScrollHeight() {
+        const totalHeight = (this.lineCount * 3);
+        return totalHeight < cache.miniMapHeight ? totalHeight : cache.miniMapHeight
+    }
     updateSyntaxColors() {
         syntax(this);
     }
     updateSize() {
         cache.editorOffsetWidth = cache.editorOffsetWidth = this.node.offsetWidth;
-        cache.miniMapHeight = this.node.offsetHeight;
+        cache.miniMapHeight = this.miniMapHeight = this.node.offsetHeight;
         cache.miniMapWidth = this.cm.getOption("miniMapWidth");
         this.minimap.resize(cache.miniMapHeight, cache.miniMapWidth);
         this.viewbox.resize(this.maxVisibleLineRange, cache.miniMapWidth);
@@ -71,15 +75,9 @@ class MiniMap {
     }
     Resize() {
         const n = this.node;
-        const p = this.node.parentNode;
-        this.w = this.changed ? this.w : n.offsetWidth;
-        p.style.width = this.w + "px";
-        this.nw = p.offsetWidth - cache.miniMapWidth;
-        p.style.width = "";
-        this.cm.setSize(this.nw, null);
-        n.style.maxWidth = n.offsetParent.offsetWidth - cache.miniMapWidth + "px";
-        this.w = this.nw + cache.miniMapWidth;
-        this.changed = true;
+        n.style.maxWidth = n.offsetParent.offsetWidth + "px";
+        n.parentNode.style.width = n.offsetParent.offsetWidth + "px";
+        n.style.width = (n.parentNode.offsetWidth - cache.miniMapWidth) + "px";
     }
     Binding() {
         if (this.side) this.side = this.cm.getOption("miniMapSide") === "left" ? "right" : "left";
@@ -89,6 +87,7 @@ class MiniMap {
     }
     Scroll(e) {
         this.viewbox.move(this.getInfo.pos);
+        if (this.lineCount * 3 < cache.miniMapHeight) return
         this.drawer.draw(this.getInfo.top, this.getInfo.top + this.getInfo.total, e);
     }
     Drag(e) {

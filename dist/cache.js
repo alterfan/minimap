@@ -16,6 +16,8 @@ const viewboxStyle = {
     MsTransition: "background-color 300ms ease-in-out, opacity 300ms ease-in-out",
     OTransition: "background-color 300ms ease-in-out, opacity 300ms ease-in-out",
 }
+
+
 var cache = new class {
     constructor() {
         this.buffer = {};
