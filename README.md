@@ -3,12 +3,11 @@
 **MiniMap** for CodeMirror is a addon for CodeMirror's based editors.
 ##### Demo: http://badrams.ru/cm-minimap/
 #####       https://alterfan.github.io/minimap/
--   Change map width
+
 
 #### New Features!
--   Added scrollbar functionality
 -   Mouse Double-click change MiniMap side attach.
-
+-   Work with touch devices side attach.
 #### How to install:
 
 To use MiniMap is to simply load the script after all CodeMirror .js files:
