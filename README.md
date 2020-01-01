@@ -1,7 +1,7 @@
 # MiniMap for CodeMirror
 
 **MiniMap** for CodeMirror is a addon for CodeMirror's based editors.
-##### Demo: http://badrams.ru/cm-minimap/
+##### Demo: http://minimap.badrams.ru
 #####       https://alterfan.github.io/minimap/
 
 
